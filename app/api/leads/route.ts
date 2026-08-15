@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase } from '../../../lib/supabase'
-import { enviarTexto, enviarImagen, enviarPlantilla } from '../webhook/whatsapp'
+import { enviarTexto, enviarImagen, enviarPlantilla, enviarPlantillaElegida, PLANTILLAS_CRM, type PlantillaCRM } from '../webhook/whatsapp'
 import { FICHA_AMBAS, FOTOS_PRIMER_CONTACTO } from '../webhook/config'
 import { inicioDiaMexico } from '../../../lib/fecha'
 
@@ -144,14 +144,38 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
 export async function PUT(req: NextRequest): Promise<NextResponse> {
   if (!auth(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const body = await req.json() as { telefono: string; mensaje: string }
-  if (!body.telefono || !body.mensaje) return NextResponse.json({ error: 'telefono y mensaje requeridos' }, { status: 400 })
+  const body = await req.json() as { telefono: string; mensaje?: string; plantilla?: string }
+  if (!body.telefono || (!body.mensaje && !body.plantilla)) {
+    return NextResponse.json({ error: 'telefono y (mensaje o plantilla) requeridos' }, { status: 400 })
+  }
 
   const tel = body.telefono.replace(/\D/g, '')
   const telWA = tel.startsWith('52') ? tel : `52${tel}`
 
   const db = getSupabase()
-  const { data: lead } = await db.from('leads').select('id').eq('telefono', telWA).single()
+  const { data: lead } = await db.from('leads').select('id, nombre').eq('telefono', telWA).single()
+
+  // ── PLANTILLA ELEGIDA A MANO ──────────────────────────────────────────────
+  // El CRM manda esto cuando la ventana ya está cerrada y quien usa el panel
+  // escogió una de las 4 plantillas aprobadas del selector, en vez de texto
+  // libre que Meta rechazaría de todos modos.
+  if (body.plantilla) {
+    if (!PLANTILLAS_CRM.includes(body.plantilla as PlantillaCRM)) {
+      return NextResponse.json({ error: 'Plantilla no reconocida' }, { status: 400 })
+    }
+    const ok = await enviarPlantillaElegida(telWA, body.plantilla as PlantillaCRM, lead?.nombre || 'que tal')
+    if (ok && lead) {
+      await db.from('interacciones').insert({
+        lead_id: lead.id,
+        tipo: 'Mensaje Saliente Bot',
+        contenido: `[Plantilla ${body.plantilla} — elegida a mano]`,
+        metadata: { manual: true, via: 'plantilla', plantilla: body.plantilla },
+      })
+    }
+    return ok
+      ? NextResponse.json({ ok: true, via: 'plantilla' })
+      : NextResponse.json({ ok: false, error: 'Meta rechazó la plantilla' }, { status: 502 })
+  }
 
   // ── VENTANA DE 24 HORAS ────────────────────────────────────────────────────
   // enviarTexto() devuelve true en cuanto Meta ACEPTA la petición (HTTP 200),
@@ -177,14 +201,18 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     dentroDeVentana = horasDesde < 24
   }
 
+  // Solo llega aquí con body.mensaje garantizado — la validación de arriba
+  // exige mensaje o plantilla, y la rama de plantilla ya regresó.
+  const mensaje = body.mensaje as string
+
   // Texto libre primero solo si el cliente escribió en las últimas 24 h —
   // fuera de ese margen está condenado a fallar (131047), así que se salta
   // directo a la plantilla aprobada.
-  const enviado = dentroDeVentana ? await enviarTexto(telWA, body.mensaje) : false
+  const enviado = dentroDeVentana ? await enviarTexto(telWA, mensaje) : false
 
   if (enviado) {
     if (lead) {
-      await db.from('interacciones').insert({ lead_id: lead.id, tipo: 'Mensaje Saliente Bot', contenido: `[Manual] ${body.mensaje}`, metadata: { manual: true } })
+      await db.from('interacciones').insert({ lead_id: lead.id, tipo: 'Mensaje Saliente Bot', contenido: `[Manual] ${mensaje}`, metadata: { manual: true } })
     }
     return NextResponse.json({ ok: true })
   }
@@ -203,7 +231,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       await db.from('interacciones').insert({
         lead_id: lead.id,
         tipo: 'Mensaje Saliente Bot',
-        contenido: `[Plantilla — fuera de ventana 24h] Tu mensaje no se pudo mandar tal cual, se envió la plantilla aprobada para reabrir la conversación. Tu texto era: "${body.mensaje}"`,
+        contenido: `[Plantilla — fuera de ventana 24h] Tu mensaje no se pudo mandar tal cual, se envió la plantilla aprobada para reabrir la conversación. Tu texto era: "${mensaje}"`,
         metadata: { manual: true, via: 'plantilla' },
       })
     }

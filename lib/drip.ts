@@ -219,3 +219,115 @@ export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: 
 
   return { enviados, errores, paraLlamar: paraLlamar.length }
 }
+
+// ── RECORDATORIOS DE CITA (24h y 2h antes) ───────────────────────────────────
+// Antes de esto, capturar día y hora de la cita no llevaba a ningún aviso
+// posterior — el cliente confirmaba y ahí se quedaba hasta el día de la
+// visita. Esto revisa periódicamente los leads en "Cita Agendada" y avisa
+// dos veces: ~24h antes y ~2h antes, sin repetir el mismo aviso dos veces
+// para la misma cita (si se reagenda, la fecha nueva es otra ventana).
+//
+// OJO — limitación real, no teórica: este motor solo se ejecuta cuando algo
+// lo llama. El cron de /api/cron corre una vez al día a las 7am hora de
+// México. Eso alcanza para el recordatorio de 24h (la ventana de tolerancia
+// es amplia), pero el de 2h necesita revisarse cada 15-30 minutos para no
+// perder la ventana casi siempre — con una corrida diaria prácticamente
+// nunca va a coincidir. Para que el de 2h funcione de verdad hace falta un
+// disparador más frecuente (cron externo gratuito tipo cron-job.org pegándole
+// a /api/cron cada 15-30 min, o subir el plan de Vercel a Pro).
+interface LeadConCita {
+  id: string
+  nombre: string | null
+  telefono: string
+  fecha_cita: string
+}
+
+type VentanaRecordatorio = '24h' | '2h'
+
+async function yaSeRecordo(leadId: string, ventana: VentanaRecordatorio, fechaCita: string): Promise<boolean> {
+  const { count } = await getSupabase()
+    .from('interacciones')
+    .select('id', { count: 'exact', head: true })
+    .eq('lead_id', leadId)
+    .contains('metadata', { recordatorio_cita: ventana, fecha_cita: fechaCita })
+
+  return (count ?? 0) > 0
+}
+
+function fechaCitaTexto(fechaCita: string): string {
+  return new Date(fechaCita).toLocaleString('es-MX', {
+    timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', hour12: true,
+  })
+}
+
+export async function ejecutarRecordatoriosCita(): Promise<{ enviados: number; pendientesAvisar: number }> {
+  const db = getSupabase()
+  let enviados = 0
+  const paraAvisar: { telefono: string; nombre: string | null; fechaTexto: string; ventana: VentanaRecordatorio }[] = []
+
+  const { data: leads } = await db
+    .from('leads')
+    .select('id, nombre, telefono, fecha_cita')
+    .eq('estado', 'Cita Agendada')
+    .not('fecha_cita', 'is', null)
+
+  const ahora = Date.now()
+
+  for (const lead of (leads ?? []) as LeadConCita[]) {
+    const digitos = lead.telefono.replace(/\D/g, '')
+    if (BLOQUEADOS.has(digitos)) continue
+
+    const horasFaltan = (new Date(lead.fecha_cita).getTime() - ahora) / 3_600_000
+    if (horasFaltan <= 0) continue // la cita ya pasó
+
+    let ventana: VentanaRecordatorio | null = null
+    if (horasFaltan <= 25 && horasFaltan >= 18) ventana = '24h'
+    else if (horasFaltan <= 2.5 && horasFaltan >= 0.5) ventana = '2h'
+    if (!ventana) continue
+
+    if (await yaSeRecordo(lead.id, ventana, lead.fecha_cita)) continue
+
+    const fechaTexto = fechaCitaTexto(lead.fecha_cita)
+    const primerNombre = lead.nombre ? ` ${lead.nombre.split(' ')[0]}` : ''
+    const texto = ventana === '24h'
+      ? `Hola${primerNombre}, te recuerdo tu visita a Parque Chapultepec mañana ${fechaTexto} en Bajada de Chapultepec 18-A. ¿Sigue en pie?`
+      : `Hola${primerNombre}, tu visita a Parque Chapultepec es en unas 2 horas, ${fechaTexto}, en Bajada de Chapultepec 18-A. ¡Te esperamos!`
+
+    // No existe todavía una plantilla aprobada de "recordatorio de cita" —
+    // solo se puede mandar como texto libre, que únicamente llega si el
+    // cliente escribió en las últimas 24h. Si falla, se avisa a Carlos con
+    // el día y hora reales para que él le escriba o llame directamente.
+    const ok = await enviarTexto(lead.telefono, texto)
+
+    if (ok) {
+      await db.from('interacciones').insert({
+        lead_id: lead.id,
+        tipo: 'Mensaje Saliente Bot',
+        contenido: texto,
+        metadata: { recordatorio_cita: ventana, fecha_cita: lead.fecha_cita },
+      })
+      enviados++
+    } else {
+      await db.from('interacciones').insert({
+        lead_id: lead.id,
+        tipo: 'Nota Manual',
+        contenido: `[RECORDATORIO NO ENVIADO] Cita ${fechaTexto} — WhatsApp no dejó texto libre (falta plantilla aprobada de recordatorio). Avísale tú.`,
+        metadata: { recordatorio_cita: ventana, fecha_cita: lead.fecha_cita, fallo: true },
+      })
+      paraAvisar.push({ telefono: lead.telefono, nombre: lead.nombre, fechaTexto, ventana })
+    }
+  }
+
+  if (paraAvisar.length > 0) {
+    const lista = paraAvisar
+      .map((p) => `• ${p.nombre || `+${p.telefono}`} — ${p.fechaTexto} (recordatorio ${p.ventana})`)
+      .join('\n')
+    await alertarCarlos(
+      `⏰ ${paraAvisar.length} recordatorio(s) de cita no se pudieron mandar por WhatsApp — falta la plantilla aprobada. Avísales tú:\n\n${lista}`,
+      'Recordatorios de cita',
+      `${paraAvisar.length} recordatorios de cita pendientes de avisar a mano`
+    )
+  }
+
+  return { enviados, pendientesAvisar: paraAvisar.length }
+}

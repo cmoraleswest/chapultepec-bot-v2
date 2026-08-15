@@ -13,6 +13,16 @@ type Salud = { publicacionesHoy: number; ultimaPublicacion: string | null; mensa
 type SoloLlamada = { id: string; nombre: string | null; telefono: string; estado: string; motivo: string; que_hacer: string; fallo_en: string }
 type Bandeja = Lead & { ultimo_entrante: string | null; ultimo_mensaje: string | null; ultimo_tipo: string | null; ultimo_mensaje_en: string | null }
 
+// Las 4 plantillas de venta aprobadas que se pueden mandar a mano cuando la
+// ventana de 24 h ya cerró. Deben coincidir con PLANTILLAS_CRM en whatsapp.ts.
+type PlantillaCRM = 'info_ambas_propiedades' | 'seguimiento_24h' | 'seguimiento_48h' | 'cierre_7dias'
+const PLANTILLAS_CRM_UI: { valor: PlantillaCRM; label: string }[] = [
+  { valor: 'info_ambas_propiedades', label: 'Info de las 2 propiedades' },
+  { valor: 'seguimiento_24h', label: 'Seguimiento 24h' },
+  { valor: 'seguimiento_48h', label: 'Seguimiento 48h' },
+  { valor: 'cierre_7dias', label: 'Cierre 7 días' },
+]
+
 const COLS = ['Nuevo', 'En Conversación', 'Calificado', 'Cita Agendada', 'No Interesado', 'No Contactar']
 const COL_C: Record<string, string> = { 'Nuevo': '#3b82f6', 'En Conversación': '#f59e0b', 'Calificado': '#10b981', 'Cita Agendada': '#8b5cf6', 'No Interesado': '#6b7280', 'No Contactar': '#ef4444' }
 const RED_C: Record<string, string> = { 'Instagram': '#E1306C', 'Facebook': '#1877F2', 'TikTok': '#00f2ea' }
@@ -81,6 +91,9 @@ export default function CRM() {
   const [enviandoPaquete, setEnviandoPaquete] = useState(false)
   const [mensajesNuevos, setMensajesNuevos] = useState<{nombre: string, texto: string, leadId: string}[]>([])
   const ultimoMsgRef = useRef<Record<string, string>>({})
+  const chatBoxRef = useRef<HTMLDivElement>(null)
+  const [plantillaSel, setPlantillaSel] = useState<PlantillaCRM>(PLANTILLAS_CRM_UI[0].valor)
+  const [enviandoPlantilla, setEnviandoPlantilla] = useState(false)
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -133,6 +146,13 @@ export default function CRM() {
     return () => clearInterval(i)
   }, [sel, refreshHist])
 
+  // Ancla el scroll de la conversación hasta abajo — al abrir un lead o al
+  // llegar un mensaje nuevo, lo último que se dijo debe verse sin que haya
+  // que desplazarse a mano.
+  useEffect(() => {
+    if (chatBoxRef.current) chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight
+  }, [hist, sel])
+
   const verHistorial = async (lead: Lead) => {
     setSel(lead)
     await refreshHist(lead.id)
@@ -162,6 +182,25 @@ export default function CRM() {
       alert('No se pudo enviar — revisa tu conexión e intenta otra vez.')
     }
     setEnviandoMsg(false)
+  }
+
+  // Fuera de la ventana de 24 h el texto libre no sirve — el CRM ofrece elegir
+  // una de las 4 plantillas aprobadas en vez de dejar escribir algo que Meta
+  // va a rechazar con el error 131047.
+  const enviarPlantillaManual = async (telefono: string, leadId: string, plantilla: PlantillaCRM) => {
+    setEnviandoPlantilla(true)
+    try {
+      const res = await fetch(`/api/leads?t=${T}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ telefono, plantilla }) })
+      const data = await res.json()
+      if (data.ok) {
+        await refreshHist(leadId)
+      } else {
+        alert(`No se pudo enviar la plantilla: ${data.error || 'error desconocido'}`)
+      }
+    } catch {
+      alert('No se pudo enviar — revisa tu conexión e intenta otra vez.')
+    }
+    setEnviandoPlantilla(false)
   }
 
   // Dispara el paquete completo (ficha + fotos + oferta) a un lead existente
@@ -551,33 +590,57 @@ export default function CRM() {
                   <span style={{ color: '#475569', fontWeight: 400 }}>
                     {v.abierta
                       ? 'Puedes escribirle lo que quieras.'
-                      : 'WhatsApp no deja texto libre. Al enviar, el sistema manda sola la plantilla aprobada para reabrir la conversación. En cuanto conteste, ya le escribes normal.'}
+                      : 'WhatsApp no deja texto libre. Elige una plantilla aprobada abajo para reabrir la conversación.'}
                   </span>
                 </div>
               )
             })()}
 
-            {/* Enviar mensaje manual */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-              <input placeholder={ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null).abierta ? 'Escribe un mensaje...' : 'Fuera de 24h — se enviará la plantilla para reabrir'} value={msgManual} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMsgManual(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') enviarMensaje(sel.telefono, sel.id) }}
-                style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 16 }} />
-              <button onClick={() => enviarMensaje(sel.telefono, sel.id)} disabled={enviandoMsg || !msgManual.trim()}
-                style={{ padding: '12px 20px', borderRadius: 10, border: 'none', background: '#25D366', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>
-                {enviandoMsg ? '...' : 'Enviar'}
-              </button>
-            </div>
+            {/* Enviar mensaje manual — texto libre si la ventana está abierta,
+                si no, solo se puede elegir una de las 4 plantillas aprobadas.
+                Dejar escribir texto libre fuera de la ventana solo produce el
+                error 131047, así que aquí ni se ofrece la opción. */}
+            {ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null).abierta ? (
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <input placeholder="Escribe un mensaje..." value={msgManual} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMsgManual(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') enviarMensaje(sel.telefono, sel.id) }}
+                  style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 16 }} />
+                <button onClick={() => enviarMensaje(sel.telefono, sel.id)} disabled={enviandoMsg || !msgManual.trim()}
+                  style={{ padding: '12px 20px', borderRadius: 10, border: 'none', background: '#25D366', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>
+                  {enviandoMsg ? '...' : 'Enviar'}
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <select value={plantillaSel} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPlantillaSel(e.target.value as PlantillaCRM)}
+                  style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 16 }}>
+                  {PLANTILLAS_CRM_UI.map(p => <option key={p.valor} value={p.valor}>{p.label}</option>)}
+                </select>
+                <button onClick={() => enviarPlantillaManual(sel.telefono, sel.id, plantillaSel)} disabled={enviandoPlantilla}
+                  style={{ padding: '12px 20px', borderRadius: 10, border: 'none', background: '#f59e0b', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                  {enviandoPlantilla ? '...' : 'Enviar plantilla'}
+                </button>
+              </div>
+            )}
 
             <div style={{ borderTop: '2px solid #e2e8f0', paddingTop: 12 }}>
-              <h4 style={{ margin: '0 0 12px', fontSize: 15, color: '#475569', fontWeight: 700 }}>Conversación · se actualiza cada 5s</h4>
-              {(() => {
-                if (hist.length === 0) return <p style={{ color: '#94a3b8', fontSize: 15 }}>Sin mensajes</p>
+              {/* Encabezado fijo del panel: estado del lead + hace cuánto escribió,
+                  siempre visible arriba aunque se haga scroll a los mensajes. */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: '#475569', fontWeight: 700 }}>Conversación · se actualiza cada 5s</h4>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={S.badge(COL_C[sel.estado] || '#94a3b8')}>Estado: {sel.estado}</span>
+                  <span style={{ fontSize: 13, color: '#64748b' }}>
+                    último mensaje hace {hace(hist[hist.length - 1]?.creado_en ?? sel.actualizado_en)}
+                  </span>
+                </div>
+              </div>
 
-                // El más reciente ARRIBA: lo primero que se necesita saber es
-                // si el cliente ya contestó, no cómo empezó la plática.
-                const orden = [...hist].reverse()
-                const ultimo = orden[0]
-                const pendiente = ultimo?.tipo === 'Mensaje Entrante'
+              {hist.length === 0 ? <p style={{ color: '#94a3b8', fontSize: 15 }}>Sin mensajes</p> : (() => {
+                // Orden cronológico natural: lo más viejo arriba, lo más
+                // reciente abajo, como cualquier chat — el scroll se ancla
+                // solo hasta el fondo, así que no hace falta invertir nada.
+                const pendiente = hist[hist.length - 1]?.tipo === 'Mensaje Entrante'
 
                 // El tipo real que guarda la base es 'Mensaje Entrante' /
                 // 'Mensaje Saliente Bot' / 'Nota Manual'. El código comparaba
@@ -604,19 +667,24 @@ export default function CRM() {
                         ⏳ PENDIENTE DE CONTESTAR — el último mensaje es del cliente
                       </div>
                     )}
-                    {orden.map((msg, i) => {
-                      const e = estilo(msg)
-                      return (
-                        <div key={msg.id} style={{ marginBottom: 10, padding: 12, borderRadius: 10, background: e.bg,
-                          borderLeft: `4px solid ${e.linea}`, boxShadow: i === 0 ? `0 0 0 2px ${e.linea}55` : 'none' }}>
-                          <div style={{ color: e.txt, fontSize: 13, fontWeight: 800, marginBottom: 4 }}>
-                            {e.quien} · {fechaMx(msg.creado_en)}
-                            {i === 0 && <span style={{ marginLeft: 8, background: e.linea, color: '#fff', borderRadius: 6, padding: '1px 8px', fontSize: 11 }}>ÚLTIMO</span>}
+                    {/* Contenedor con scroll propio — el resto del panel (header,
+                        botones, ventana de 24h, input) se queda fijo arriba. */}
+                    <div ref={chatBoxRef} style={{ maxHeight: '45vh', overflowY: 'auto', paddingRight: 4 }}>
+                      {hist.map((msg, i) => {
+                        const e = estilo(msg)
+                        const esUltimo = i === hist.length - 1
+                        return (
+                          <div key={msg.id} style={{ marginBottom: 10, padding: 12, borderRadius: 10, background: e.bg,
+                            borderLeft: `4px solid ${e.linea}`, boxShadow: esUltimo ? `0 0 0 2px ${e.linea}55` : 'none' }}>
+                            <div style={{ color: e.txt, fontSize: 13, fontWeight: 800, marginBottom: 4 }}>
+                              {e.quien} · {fechaMx(msg.creado_en)}
+                              {esUltimo && <span style={{ marginLeft: 8, background: e.linea, color: '#fff', borderRadius: 6, padding: '1px 8px', fontSize: 11 }}>ÚLTIMO</span>}
+                            </div>
+                            <div style={{ fontSize: 16, color: '#0f172a', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{msg.contenido}</div>
                           </div>
-                          <div style={{ fontSize: 16, color: '#0f172a', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{msg.contenido}</div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
+                    </div>
                   </>
                 )
               })()}

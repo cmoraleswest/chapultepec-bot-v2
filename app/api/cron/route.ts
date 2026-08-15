@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { ejecutarCicloDrip } from '../../../lib/drip'
+import { ejecutarCicloDrip, ejecutarRecordatoriosCita } from '../../../lib/drip'
 import { publicarDiario } from '../../../lib/buffer'
 
 export const dynamic = 'force-dynamic'
@@ -20,6 +20,15 @@ export async function GET(req: Request): Promise<NextResponse> {
     resultado.drip = await ejecutarCicloDrip()
   } catch (e) {
     resultado.drip = { error: String(e) }
+  }
+
+  // Recordatorios de cita 24h/2h — ver nota de frecuencia en lib/drip.ts:
+  // con este cron diario, el de 24h sí alcanza a dispararse; el de 2h
+  // necesita un disparador más frecuente para funcionar de verdad.
+  try {
+    resultado.recordatorios = await ejecutarRecordatoriosCita()
+  } catch (e) {
+    resultado.recordatorios = { error: String(e) }
   }
 
   // Buffer: publica diario (cron corre 1x al día a las 7AM MX)

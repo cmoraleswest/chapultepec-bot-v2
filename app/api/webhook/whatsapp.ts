@@ -150,6 +150,19 @@ export async function enviarPlantillaSeguimiento(to: string, plantilla: string, 
   return true
 }
 
+// Las 4 plantillas de venta que un humano puede elegir a mano en el CRM
+// cuando la ventana de 24 h ya cerró. info_ambas_propiedades no lleva
+// parámetro de cuerpo (solo la imagen del header) — mandarle el nombre como
+// {{1}} como a las otras tres haría que Meta la rechace por número de
+// parámetros incorrecto.
+export const PLANTILLAS_CRM = ['info_ambas_propiedades', 'seguimiento_24h', 'seguimiento_48h', 'cierre_7dias'] as const
+export type PlantillaCRM = (typeof PLANTILLAS_CRM)[number]
+
+export async function enviarPlantillaElegida(to: string, plantilla: PlantillaCRM, nombre: string): Promise<boolean> {
+  if (plantilla === 'info_ambas_propiedades') return enviarPlantilla(to)
+  return enviarPlantillaSeguimiento(to, plantilla, nombre)
+}
+
 // Manda la ficha técnica como PDF adjunto. Un PDF el cliente lo guarda, lo
 // abre en su computadora y se lo enseña a su pareja — cosa que una foto suelta
 // en el chat no logra. Es la pieza que cierra ventas en inmuebles.
