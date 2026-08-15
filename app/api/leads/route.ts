@@ -3,6 +3,7 @@ import { getSupabase } from '../../../lib/supabase'
 import { enviarTexto, enviarImagen, enviarPlantilla, enviarPlantillaElegida, PLANTILLAS_CRM, type PlantillaCRM } from '../webhook/whatsapp'
 import { FICHA_AMBAS, FOTOS_PRIMER_CONTACTO } from '../webhook/config'
 import { inicioDiaMexico } from '../../../lib/fecha'
+import { ventanaAbierta } from '../webhook/leads'
 
 export const dynamic = 'force-dynamic'
 
@@ -184,22 +185,11 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
   // entonces este endpoint ya había respondido ok:true y nunca intentó la
   // plantilla de respaldo. Por eso se veían leads marcados como enviados que
   // en realidad nunca recibieron nada. Ahora se revisa la ventana ANTES de
-  // intentar texto libre, igual que ya hace lib/drip.ts.
-  let dentroDeVentana = true
-  if (lead) {
-    const { data: ultimoEntrante } = await db
-      .from('interacciones')
-      .select('creado_en')
-      .eq('lead_id', lead.id)
-      .eq('tipo', 'Mensaje Entrante')
-      .order('creado_en', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    const horasDesde = ultimoEntrante
-      ? (Date.now() - new Date(ultimoEntrante.creado_en).getTime()) / 3_600_000
-      : Infinity
-    dentroDeVentana = horasDesde < 24
-  }
+  // intentar texto libre, con la misma función que usan POST /api/leads y
+  // lib/drip.ts — un solo lugar que decide esto, no una consulta reescrita
+  // en cada archivo (esa duplicación fue justo lo que dejó un hueco en el
+  // recordatorio de la hora 1 del drip).
+  const dentroDeVentana = lead ? await ventanaAbierta(lead.id) : false
 
   // Solo llega aquí con body.mensaje garantizado — la validación de arriba
   // exige mensaje o plantilla, y la rama de plantilla ya regresó.
@@ -322,24 +312,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (yaContactado) {
     await enviarTexto('527774921176', `📞 +${telWA} volvió a llamar (ya tiene la info desde hace menos de 12h). Llámalo tú — no se le reenvió nada.`)
   } else {
-    // ── ¿EL CLIENTE NOS HA ESCRITO ALGUNA VEZ? ─────────────────────────────
-    // La ventana de 24 h SOLO la abre el cliente. A quien nunca nos escribió
-    // (el caso típico: llamó por teléfono y colgamos su número aquí) WhatsApp
-    // le rechaza texto libre e imágenes: únicamente pasa la plantilla.
-    // Antes se intentaban igual la ficha y las 4 fotos, que siempre fallaban
-    // y llenaban el CRM y el WhatsApp de Carlos de alertas de error inútiles.
-    const { count: nosEscribio } = await db
-      .from('interacciones')
-      .select('id', { count: 'exact', head: true })
-      .eq('lead_id', lead?.id ?? '')
-      .eq('tipo', 'Mensaje Entrante')
-
-    const ventanaAbierta = (nosEscribio ?? 0) > 0
+    // ── ¿EL CLIENTE NOS HA ESCRITO EN LAS ÚLTIMAS 24 H? ────────────────────
+    // La ventana SOLO la abre el cliente. A quien nunca nos escribió (el
+    // caso típico: llamó por teléfono y colgamos su número aquí) WhatsApp le
+    // rechaza texto libre e imágenes: únicamente pasa la plantilla. Antes se
+    // intentaban igual la ficha y las 4 fotos, que siempre fallaban y
+    // llenaban el CRM y el WhatsApp de Carlos de alertas de error inútiles.
+    const yaEscribioReciente = lead ? await ventanaAbierta(lead.id) : false
 
     const okPlantilla = await enviarPlantilla(telWA)
     envioCompleto = okPlantilla
 
-    if (ventanaAbierta) {
+    if (yaEscribioReciente) {
       // Ya nos escribió antes: aquí sí pasa todo el paquete.
       const okFicha = await enviarTexto(telWA, FICHA_AMBAS)
       let okFotos = true

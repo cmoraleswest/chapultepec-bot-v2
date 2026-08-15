@@ -1,6 +1,7 @@
 import { getSupabase } from './supabase'
 import { enviarTexto, alertarCarlos, enviarPlantillaSeguimiento, enviarPlantillaCita } from '../app/api/webhook/whatsapp'
 import { BLOQUEADOS } from '../app/api/webhook/config'
+import { ventanaAbierta } from '../app/api/webhook/leads'
 
 interface Lead {
   id: string
@@ -108,6 +109,19 @@ export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: 
     const digitos = lead.telefono.replace(/\D/g, '')
     if (BLOQUEADOS.has(digitos)) continue
 
+    // Un número que ya rechazó con 131026 (sin WhatsApp) no lo va a tener la
+    // próxima vez que se le intente — no es un problema de ventana ni de
+    // plantilla, es que la app no está instalada ahí. Antes el drip lo
+    // reintentaba en cada ciclo durante días hasta que "cierre" lo cerraba
+    // solo, acumulando fallas sin sentido. Un solo 131026 ya visto basta
+    // para dejar de insistir; la vista "Solo llamada" del CRM ya lo cubre.
+    const { count: sinWhatsapp } = await db
+      .from('interacciones')
+      .select('id', { count: 'exact', head: true })
+      .eq('lead_id', lead.id)
+      .like('contenido', '%131026%')
+    if ((sinWhatsapp ?? 0) > 0) continue
+
     const msDesdeUpdate = ahora - new Date(lead.actualizado_en).getTime()
     const horasDesdeUpdate = msDesdeUpdate / (1000 * 60 * 60)
 
@@ -162,23 +176,19 @@ export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: 
           break
         }
 
-        // ── ¿ALGUNA VEZ NOS ESCRIBIÓ? ─────────────────────────────────────
+        // ── ¿SIGUE ABIERTA LA VENTANA? ──────────────────────────────────────
         // Esta rama es para reglas de menos de 24 h (hoy solo
         // bienvenida_recordatorio, a la hora 1). Se asumía que si el lead
         // llevaba menos de un día en "Nuevo" la ventana seguía abierta, pero
-        // eso solo es cierto si alguna vez escribió por WhatsApp. Un lead de
-        // "Llamada Rescatada" no abre ventana con la llamada — solo con un
-        // mensaje real — y ya recibió la ficha por plantilla al momento de
-        // registrar la llamada (ver app/api/leads/route.ts). Mandarle este
-        // texto libre encima estaba condenado a fallar con 131047 el 100% de
-        // las veces. Si nunca escribió, se salta la regla en vez de intentar.
-        const { count: nosEscribioAntes } = await db
-          .from('interacciones')
-          .select('id', { count: 'exact', head: true })
-          .eq('lead_id', lead.id)
-          .eq('tipo', 'Mensaje Entrante')
-
-        if (!nosEscribioAntes) continue
+        // eso solo es cierto si escribió por WhatsApp en las últimas 24 h. Un
+        // lead de "Llamada Rescatada" no abre ventana con la llamada — solo
+        // un mensaje real — y ya recibió la ficha por plantilla al momento
+        // de registrar la llamada (ver app/api/leads/route.ts). Mandarle
+        // este texto libre encima estaba condenado a fallar con 131047 el
+        // 100% de las veces. ventanaAbierta() es la misma función que usa
+        // todo el sistema para esta pregunta — un solo lugar, no una
+        // consulta reescrita aquí que alguien puede olvidar actualizar.
+        if (!(await ventanaAbierta(lead.id))) continue
 
         const texto = regla.plantilla(lead.nombre)
         const ok = await enviarTexto(lead.telefono, texto)

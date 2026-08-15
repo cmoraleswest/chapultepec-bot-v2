@@ -142,3 +142,28 @@ export async function estaBloquadoEnDB(telefono: string): Promise<boolean> {
 
   return data?.estado === 'No Contactar'
 }
+
+// ── ¿SE LE PUEDE ESCRIBIR TEXTO LIBRE AHORA MISMO? ───────────────────────────
+// WhatsApp solo permite texto libre dentro de las 24 h siguientes al último
+// mensaje QUE EL CLIENTE mandó — una llamada, una plantilla nuestra o un
+// mensaje de hace más de 24 h no cuentan. Esta regla se había reescrito tres
+// veces por separado (envío manual, alta por llamada, motor de drip), cada
+// una a su manera y una de ellas — la del drip — sin la revisión completa,
+// que fue justo lo que causó que el recordatorio de la hora 1 le fallara
+// siempre a quien nunca había escrito. A partir de ahora cualquier código que
+// necesite mandar texto libre pasa por esta única función en vez de volver a
+// escribir la consulta a mano.
+export async function ventanaAbierta(leadId: string): Promise<boolean> {
+  const { data } = await getSupabase()
+    .from('interacciones')
+    .select('creado_en')
+    .eq('lead_id', leadId)
+    .eq('tipo', 'Mensaje Entrante')
+    .order('creado_en', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!data) return false
+  const horasDesde = (Date.now() - new Date(data.creado_en).getTime()) / 3_600_000
+  return horasDesde < 24
+}
