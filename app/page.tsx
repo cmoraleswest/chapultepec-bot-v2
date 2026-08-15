@@ -600,91 +600,20 @@ export default function CRM() {
                 <button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}>✕</button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
-              {COLS.filter(c => c !== sel.estado).map(c => (
-                <button key={c} onClick={() => { patch(sel.id, 'leads', { estado: c }); setSel(null) }}
-                  style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, border: `1px solid ${COL_C[c]}44`, background: 'transparent', color: COL_C[c], cursor: 'pointer' }}>
-                  → {c}
-                </button>
-              ))}
+            {/* La conversación va PRIMERO, pegada al encabezado — antes había
+                cinco bloques (botones de etapa, ficha completa, banner de
+                ventana, input) antes de llegar a los mensajes, así que abrir
+                un lead significaba deslizar hacia abajo para ver de qué se
+                trataba. Lo que se quiere ver primero al abrir un lead es la
+                plática, no los botones de acción. */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+              <span style={{ fontSize: 13, color: '#64748b' }}>
+                {(() => { const v = ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null); return <>{v.icono} {v.label}</> })()}
+                {' · último mensaje hace '}{hace(hist[hist.length - 1]?.creado_en ?? sel.actualizado_en)}
+              </span>
             </div>
-            {/* Botón paquete completo */}
-            <button onClick={() => enviarPaquete(sel.telefono, sel.nombre, sel.id)} disabled={enviandoPaquete}
-              style={{ width: '100%', padding: '14px 0', borderRadius: 10, border: 'none', background: '#2D6A4F', color: '#fff', cursor: 'pointer', fontSize: 17, fontWeight: 700, marginBottom: 12 }}>
-              {enviandoPaquete ? 'Enviando...' : '📦 Enviar ficha + fotos + oferta'}
-            </button>
 
-            {/* Estado de la ventana de 24 h — sin esto es imposible saber si el
-                mensaje va a llegar tal cual o si saldrá como plantilla. */}
-            {(() => {
-              const v = ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null)
-              return (
-                <div style={{ marginBottom: 10, padding: '10px 14px', borderRadius: 10, background: v.color + '15', border: `1px solid ${v.color}44`, fontSize: 14, color: v.color, fontWeight: 600 }}>
-                  {v.icono} Ventana de WhatsApp: {v.label}.{' '}
-                  <span style={{ color: '#475569', fontWeight: 400 }}>
-                    {v.abierta
-                      ? 'Puedes escribirle lo que quieras.'
-                      : 'WhatsApp no deja texto libre. Elige una plantilla aprobada abajo para reabrir la conversación.'}
-                  </span>
-                </div>
-              )
-            })()}
-
-            {/* Enviar mensaje manual — texto libre si la ventana está abierta,
-                si no, solo se puede elegir una de las 4 plantillas aprobadas.
-                Dejar escribir texto libre fuera de la ventana solo produce el
-                error 131047, así que aquí ni se ofrece la opción. */}
-            {ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null).abierta ? (
-              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                <input placeholder="Escribe un mensaje..." value={msgManual} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMsgManual(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') enviarMensaje(sel.telefono, sel.id) }}
-                  style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 16 }} />
-                <button onClick={() => enviarMensaje(sel.telefono, sel.id)} disabled={enviandoMsg || !msgManual.trim()}
-                  style={{ padding: '12px 20px', borderRadius: 10, border: 'none', background: '#25D366', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>
-                  {enviandoMsg ? '...' : 'Enviar'}
-                </button>
-              </div>
-            ) : (() => {
-              const yaEnviadas = plantillasEnviadas(hist)
-              return (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <select value={plantillaSel} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPlantillaSel(e.target.value as PlantillaCRM)}
-                      style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 16 }}>
-                      {PLANTILLAS_CRM_UI.map(p => (
-                        <option key={p.valor} value={p.valor}>
-                          {p.label}{yaEnviadas[p.valor] ? ` — ✓ enviada hace ${hace(yaEnviadas[p.valor])}` : ''}
-                        </option>
-                      ))}
-                    </select>
-                    <button onClick={() => enviarPlantillaManual(sel.telefono, sel.id, plantillaSel)} disabled={enviandoPlantilla}
-                      style={{ padding: '12px 20px', borderRadius: 10, border: 'none', background: '#f59e0b', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>
-                      {enviandoPlantilla ? '...' : 'Enviar plantilla'}
-                    </button>
-                  </div>
-                  {Object.keys(yaEnviadas).length > 0 && (
-                    <div style={{ fontSize: 13, color: '#64748b', marginTop: 6 }}>
-                      Ya enviadas a este lead: {PLANTILLAS_CRM_UI.filter(p => yaEnviadas[p.valor]).map(p => p.label).join(' · ')}
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-
-            <div style={{ borderTop: '2px solid #e2e8f0', paddingTop: 12 }}>
-              {/* Encabezado fijo del panel: estado del lead + hace cuánto escribió,
-                  siempre visible arriba aunque se haga scroll a los mensajes. */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <h4 style={{ margin: 0, fontSize: 15, color: '#475569', fontWeight: 700 }}>Conversación · se actualiza cada 5s</h4>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span style={S.badge(COL_C[sel.estado] || '#94a3b8')}>Estado: {sel.estado}</span>
-                  <span style={{ fontSize: 13, color: '#64748b' }}>
-                    último mensaje hace {hace(hist[hist.length - 1]?.creado_en ?? sel.actualizado_en)}
-                  </span>
-                </div>
-              </div>
-
-              {hist.length === 0 ? <p style={{ color: '#94a3b8', fontSize: 15 }}>Sin mensajes</p> : (() => {
+            {hist.length === 0 ? <p style={{ color: '#94a3b8', fontSize: 15 }}>Sin mensajes</p> : (() => {
                 // Orden cronológico natural: lo más viejo arriba, lo más
                 // reciente abajo, como cualquier chat — el scroll se ancla
                 // solo hasta el fondo, así que no hace falta invertir nada.
@@ -736,6 +665,66 @@ export default function CRM() {
                   </>
                 )
               })()}
+
+            {/* Enviar mensaje manual — texto libre si la ventana está abierta,
+                si no, solo se puede elegir una de las 4 plantillas aprobadas.
+                Dejar escribir texto libre fuera de la ventana solo produce el
+                error 131047, así que aquí ni se ofrece la opción. Va justo
+                debajo de los mensajes, como cualquier chat normal. */}
+            {ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null).abierta ? (
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <input placeholder="Escribe un mensaje..." value={msgManual} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMsgManual(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') enviarMensaje(sel.telefono, sel.id) }}
+                  style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 16 }} />
+                <button onClick={() => enviarMensaje(sel.telefono, sel.id)} disabled={enviandoMsg || !msgManual.trim()}
+                  style={{ padding: '12px 20px', borderRadius: 10, border: 'none', background: '#25D366', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>
+                  {enviandoMsg ? '...' : 'Enviar'}
+                </button>
+              </div>
+            ) : (() => {
+              const yaEnviadas = plantillasEnviadas(hist)
+              return (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <select value={plantillaSel} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPlantillaSel(e.target.value as PlantillaCRM)}
+                      style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 16 }}>
+                      {PLANTILLAS_CRM_UI.map(p => (
+                        <option key={p.valor} value={p.valor}>
+                          {p.label}{yaEnviadas[p.valor] ? ` — ✓ enviada hace ${hace(yaEnviadas[p.valor])}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <button onClick={() => enviarPlantillaManual(sel.telefono, sel.id, plantillaSel)} disabled={enviandoPlantilla}
+                      style={{ padding: '12px 20px', borderRadius: 10, border: 'none', background: '#f59e0b', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      {enviandoPlantilla ? '...' : 'Enviar plantilla'}
+                    </button>
+                  </div>
+                  {Object.keys(yaEnviadas).length > 0 && (
+                    <div style={{ fontSize: 13, color: '#64748b', marginTop: 6 }}>
+                      Ya enviadas a este lead: {PLANTILLAS_CRM_UI.filter(p => yaEnviadas[p.valor]).map(p => p.label).join(' · ')}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
+            {/* Acciones secundarias — cambiar etapa a mano y reenviar el
+                paquete completo. Se usan mucho menos seguido que leer y
+                contestar, así que van hasta abajo en vez de ser lo primero
+                que tapa la conversación. */}
+            <div style={{ borderTop: '1px solid #e2e8f0', marginTop: 18, paddingTop: 14 }}>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                {COLS.filter(c => c !== sel.estado).map(c => (
+                  <button key={c} onClick={() => { patch(sel.id, 'leads', { estado: c }); setSel(null) }}
+                    style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, border: `1px solid ${COL_C[c]}44`, background: 'transparent', color: COL_C[c], cursor: 'pointer' }}>
+                    → {c}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => enviarPaquete(sel.telefono, sel.nombre, sel.id)} disabled={enviandoPaquete}
+                style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid #2D6A4F44', background: 'transparent', color: '#2D6A4F', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+                {enviandoPaquete ? 'Enviando...' : '📦 Reenviar ficha + fotos + oferta'}
+              </button>
             </div>
           </div>
         </div>
