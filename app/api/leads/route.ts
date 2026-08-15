@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase } from '../../../lib/supabase'
 import { enviarTexto, enviarImagen, enviarPlantilla, enviarPlantillaElegida, PLANTILLAS_CRM, type PlantillaCRM } from '../webhook/whatsapp'
-import { FICHA_AMBAS, FOTOS_PRIMER_CONTACTO } from '../webhook/config'
+import { FICHA_AMBAS, FOTOS_PRIMER_CONTACTO, FOTOS_PH, FOTOS_DEPTO } from '../webhook/config'
 import { inicioDiaMexico } from '../../../lib/fecha'
 import { ventanaAbierta } from '../webhook/leads'
 
@@ -145,9 +145,9 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
 export async function PUT(req: NextRequest): Promise<NextResponse> {
   if (!auth(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const body = await req.json() as { telefono: string; mensaje?: string; plantilla?: string }
-  if (!body.telefono || (!body.mensaje && !body.plantilla)) {
-    return NextResponse.json({ error: 'telefono y (mensaje o plantilla) requeridos' }, { status: 400 })
+  const body = await req.json() as { telefono: string; mensaje?: string; plantilla?: string; fotos?: 'ph' | 'depto' }
+  if (!body.telefono || (!body.mensaje && !body.plantilla && !body.fotos)) {
+    return NextResponse.json({ error: 'telefono y (mensaje, plantilla o fotos) requeridos' }, { status: 400 })
   }
 
   const tel = body.telefono.replace(/\D/g, '')
@@ -155,6 +155,34 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
 
   const db = getSupabase()
   const { data: lead } = await db.from('leads').select('id, nombre').eq('telefono', telWA).single()
+
+  // ── ENVIAR MÁS FOTOS A MANO ────────────────────────────────────────────────
+  // FOTOS_CHAT y FOTOS_DEPTO ya existían "para reenvíos y envíos manuales"
+  // (ver config.ts) pero nunca se conectaron a ningún botón — la única forma
+  // de mandarlas era que el bot las disparara solo cuando el cliente las
+  // pedía. Las imágenes tienen la misma regla de ventana que el texto libre,
+  // así que aquí también se revisa antes de intentar.
+  if (body.fotos) {
+    if (!lead) return NextResponse.json({ error: 'Lead no encontrado' }, { status: 404 })
+    if (!(await ventanaAbierta(lead.id))) {
+      return NextResponse.json({ error: 'Ventana cerrada — no se pueden mandar fotos sueltas fuera de la ventana de 24h, solo plantilla' }, { status: 400 })
+    }
+    const set = body.fotos === 'ph' ? FOTOS_PH : FOTOS_DEPTO
+    let ok = true
+    for (const foto of set) {
+      const enviada = await enviarImagen(telWA, foto.url, foto.caption)
+      if (!enviada) ok = false
+    }
+    await db.from('interacciones').insert({
+      lead_id: lead.id,
+      tipo: 'Mensaje Saliente Bot',
+      contenido: ok ? `[FOTOS ${body.fotos.toUpperCase()} — enviadas a mano]` : `[FALLÓ] [FOTOS ${body.fotos.toUpperCase()} — enviadas a mano]`,
+      metadata: { manual: true, fotos: body.fotos },
+    })
+    return ok
+      ? NextResponse.json({ ok: true })
+      : NextResponse.json({ ok: false, error: 'Alguna foto no se pudo enviar' }, { status: 502 })
+  }
 
   // ── PLANTILLA ELEGIDA A MANO ──────────────────────────────────────────────
   // El CRM manda esto cuando la ventana ya está cerrada y quien usa el panel

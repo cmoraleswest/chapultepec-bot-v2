@@ -119,6 +119,7 @@ export default function CRM() {
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const [plantillaSel, setPlantillaSel] = useState<PlantillaCRM>(PLANTILLAS_CRM_UI[0].valor)
   const [enviandoPlantilla, setEnviandoPlantilla] = useState(false)
+  const [enviandoFotos, setEnviandoFotos] = useState<'ph' | 'depto' | null>(null)
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -207,6 +208,25 @@ export default function CRM() {
       alert('No se pudo enviar — revisa tu conexión e intenta otra vez.')
     }
     setEnviandoMsg(false)
+  }
+
+  // FOTOS_CHAT/FOTOS_DEPTO ya existían "para reenvíos y envíos manuales" pero
+  // nunca tenían un botón real que las disparara — solo salían si el bot las
+  // mandaba solo cuando el cliente las pedía.
+  const enviarMasFotos = async (telefono: string, leadId: string, cual: 'ph' | 'depto') => {
+    setEnviandoFotos(cual)
+    try {
+      const res = await fetch(`/api/leads?t=${T}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ telefono, fotos: cual }) })
+      const data = await res.json()
+      if (data.ok) {
+        await refreshHist(leadId)
+      } else {
+        alert(`No se pudieron mandar las fotos: ${data.error || 'error desconocido'}`)
+      }
+    } catch {
+      alert('No se pudo enviar — revisa tu conexión e intenta otra vez.')
+    }
+    setEnviandoFotos(null)
   }
 
   // Fuera de la ventana de 24 h el texto libre no sirve — el CRM ofrece elegir
@@ -681,7 +701,23 @@ export default function CRM() {
                   {enviandoMsg ? '...' : 'Enviar'}
                 </button>
               </div>
-            ) : (() => {
+            ) : null}
+            {/* Enviar más fotos a mano — solo con ventana abierta, misma regla
+                que el texto libre. Las fotos ya existían listas para esto en
+                config.ts, solo les faltaba un botón. */}
+            {ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null).abierta && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <button onClick={() => enviarMasFotos(sel.telefono, sel.id, 'ph')} disabled={enviandoFotos !== null}
+                  style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: '1px solid #8b5cf644', background: 'transparent', color: '#8b5cf6', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                  {enviandoFotos === 'ph' ? 'Enviando...' : '📸 Más fotos del Penthouse'}
+                </button>
+                <button onClick={() => enviarMasFotos(sel.telefono, sel.id, 'depto')} disabled={enviandoFotos !== null}
+                  style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: '1px solid #0d948844', background: 'transparent', color: '#0d9488', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                  {enviandoFotos === 'depto' ? 'Enviando...' : '📸 Más fotos del Departamento'}
+                </button>
+              </div>
+            )}
+            {!ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null).abierta && (() => {
               const yaEnviadas = plantillasEnviadas(hist)
               return (
                 <div style={{ marginTop: 12 }}>
