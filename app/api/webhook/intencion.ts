@@ -29,7 +29,7 @@ const INSTRUCCIONES = `Clasificas mensajes de WhatsApp que le llegan a Ana, ases
 
 Clasifica el mensaje en una intención:
 - INSULTO: insulta, agrede o usa groserías dirigidas a la asesora o la empresa. NO es insulto quejarse del precio o decir que no le interesa.
-- RECHAZO: rechaza inequívocamente seguir la conversación — "no me interesa", "no gracias", "está muy caro", "no me alcanza", "lo voy a pensar" (como forma de cerrar la plática), "no tengo presupuesto para eso".
+- RECHAZO: rechaza inequívocamente seguir la conversación — "no me interesa", "no gracias", "está muy caro", "no me alcanza", "lo voy a pensar" (como forma de cerrar la plática), "no tengo presupuesto para eso". Si dice que no quiere COMPRAR pero busca algo en RENTA, eso NO es RECHAZO — es CONVERSACION, porque Ana todavía le puede contestar sobre esa opción.
 - PIDE_FOTOS: pide ver fotos, imágenes o más material visual explícitamente.
 - AGENDA_CITA: quiere agendar, propone o confirma día/hora para visitar, o pregunta por disponibilidad de días — el momento en que ya está listo para pasar a coordinar una visita con un humano.
 - CONVERSACION: cualquier otra cosa — preguntas, información, saludo, plática normal.
