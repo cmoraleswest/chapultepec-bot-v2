@@ -75,6 +75,18 @@ function plantillasEnviadas(hist: Interaccion[]): Record<string, string> {
   return ultima
 }
 
+// Cuándo se mandaron a mano las fotos extra del Penthouse o el Departamento
+// con los botones de abajo — sin esto, un segundo clic manda las mismas 5
+// fotos otra vez sin que nada lo avise.
+function fotosExtraEnviadas(hist: Interaccion[]): { ph: string | null; depto: string | null } {
+  const r: { ph: string | null; depto: string | null } = { ph: null, depto: null }
+  for (const msg of hist) {
+    if (msg.contenido.includes('[FOTOS PH — enviadas a mano]') && (!r.ph || msg.creado_en > r.ph)) r.ph = msg.creado_en
+    if (msg.contenido.includes('[FOTOS DEPTO — enviadas a mano]') && (!r.depto || msg.creado_en > r.depto)) r.depto = msg.creado_en
+  }
+  return r
+}
+
 function fmtTel(t: string): string {
   const d = t.replace(/\D/g, '')
   if (d.length === 12 && d.startsWith('52')) return `+52 ${d.slice(2, 5)} ${d.slice(5, 8)} ${d.slice(8)}`
@@ -704,19 +716,30 @@ export default function CRM() {
             ) : null}
             {/* Enviar más fotos a mano — solo con ventana abierta, misma regla
                 que el texto libre. Las fotos ya existían listas para esto en
-                config.ts, solo les faltaba un botón. */}
-            {ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null).abierta && (
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button onClick={() => enviarMasFotos(sel.telefono, sel.id, 'ph')} disabled={enviandoFotos !== null}
-                  style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: '1px solid #8b5cf644', background: 'transparent', color: '#8b5cf6', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-                  {enviandoFotos === 'ph' ? 'Enviando...' : '📸 Más fotos del Penthouse'}
-                </button>
-                <button onClick={() => enviarMasFotos(sel.telefono, sel.id, 'depto')} disabled={enviandoFotos !== null}
-                  style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: '1px solid #0d948844', background: 'transparent', color: '#0d9488', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-                  {enviandoFotos === 'depto' ? 'Enviando...' : '📸 Más fotos del Departamento'}
-                </button>
-              </div>
-            )}
+                config.ts, solo les faltaba un botón. Si ya se mandaron antes
+                a este mismo lead, el botón lo dice y pide confirmar antes de
+                repetir el mismo set — Carlos pidió explícitamente que no se
+                repitan fotos sin querer. */}
+            {ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null).abierta && (() => {
+              const yaFotos = fotosExtraEnviadas(hist)
+              const clickFotos = (cual: 'ph' | 'depto') => {
+                const yaEn = cual === 'ph' ? yaFotos.ph : yaFotos.depto
+                if (yaEn && !confirm(`Ya le mandaste estas fotos hace ${hace(yaEn)}. ¿Mandarlas otra vez?`)) return
+                enviarMasFotos(sel.telefono, sel.id, cual)
+              }
+              return (
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <button onClick={() => clickFotos('ph')} disabled={enviandoFotos !== null}
+                    style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: '1px solid #8b5cf644', background: 'transparent', color: '#8b5cf6', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                    {enviandoFotos === 'ph' ? 'Enviando...' : yaFotos.ph ? `✓ Fotos del Penthouse — hace ${hace(yaFotos.ph)}` : '📸 Más fotos del Penthouse'}
+                  </button>
+                  <button onClick={() => clickFotos('depto')} disabled={enviandoFotos !== null}
+                    style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: '1px solid #0d948844', background: 'transparent', color: '#0d9488', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                    {enviandoFotos === 'depto' ? 'Enviando...' : yaFotos.depto ? `✓ Fotos del Depto — hace ${hace(yaFotos.depto)}` : '📸 Más fotos del Departamento'}
+                  </button>
+                </div>
+              )
+            })()}
             {!ventana24(bandeja.find(b => b.id === sel.id)?.ultimo_entrante ?? null).abierta && (() => {
               const yaEnviadas = plantillasEnviadas(hist)
               return (

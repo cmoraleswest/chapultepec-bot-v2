@@ -317,7 +317,13 @@ async function processIntelligentAgent(from: string, lead: Lead, texto: string, 
       const ok = await enviarImagen(from, foto.url, foto.caption, phoneNumberId)
       if (!ok) okFotos = false
     }
-    await guardarInteraccion(lead.id, 'saliente', okFotos ? '[FOTOS PH+DEPTO]' : '[FALLÓ] [FOTOS PH+DEPTO]')
+    // Este envío es FOTOS_CHAT (piezas genéricas wa-*) + FOTOS_DEPTO, NO las
+    // 5 renders dedicados del penthouse (FOTOS_PH, ph-*.jpg) — la etiqueta
+    // decía "[FOTOS PH+DEPTO]", lo cual hacía pensar que ya se habían
+    // mandado los renders del penthouse cuando en realidad nunca salieron
+    // por este camino. El botón manual de "Más fotos del Penthouse" en el
+    // CRM sí manda FOTOS_PH — son fotos distintas, no un reenvío.
+    await guardarInteraccion(lead.id, 'saliente', okFotos ? '[FOTOS CHAT+DEPTO]' : '[FALLÓ] [FOTOS CHAT+DEPTO]')
 
     // Además de las fotos va la ficha en PDF de la propiedad que le interesa.
     // Si todavía no dijo cuál, se le mandan las dos: que decida con todo a la
