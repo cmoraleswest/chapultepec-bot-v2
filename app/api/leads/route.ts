@@ -153,8 +153,34 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
   const db = getSupabase()
   const { data: lead } = await db.from('leads').select('id').eq('telefono', telWA).single()
 
-  // Texto libre primero: es el mensaje exacto que Carlos escribió.
-  const enviado = await enviarTexto(telWA, body.mensaje)
+  // ── VENTANA DE 24 HORAS ────────────────────────────────────────────────────
+  // enviarTexto() devuelve true en cuanto Meta ACEPTA la petición (HTTP 200),
+  // no cuando el mensaje realmente se entrega. Fuera de la ventana de 24 h
+  // Meta acepta igual y horas después avisa "failed" por el webhook — para
+  // entonces este endpoint ya había respondido ok:true y nunca intentó la
+  // plantilla de respaldo. Por eso se veían leads marcados como enviados que
+  // en realidad nunca recibieron nada. Ahora se revisa la ventana ANTES de
+  // intentar texto libre, igual que ya hace lib/drip.ts.
+  let dentroDeVentana = true
+  if (lead) {
+    const { data: ultimoEntrante } = await db
+      .from('interacciones')
+      .select('creado_en')
+      .eq('lead_id', lead.id)
+      .eq('tipo', 'Mensaje Entrante')
+      .order('creado_en', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    const horasDesde = ultimoEntrante
+      ? (Date.now() - new Date(ultimoEntrante.creado_en).getTime()) / 3_600_000
+      : Infinity
+    dentroDeVentana = horasDesde < 24
+  }
+
+  // Texto libre primero solo si el cliente escribió en las últimas 24 h —
+  // fuera de ese margen está condenado a fallar (131047), así que se salta
+  // directo a la plantilla aprobada.
+  const enviado = dentroDeVentana ? await enviarTexto(telWA, body.mensaje) : false
 
   if (enviado) {
     if (lead) {

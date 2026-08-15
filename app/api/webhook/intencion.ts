@@ -103,3 +103,63 @@ export async function clasificarMensaje(texto: string): Promise<Clasificacion> {
     return { intencion: 'CONVERSACION', propiedad: null }
   }
 }
+
+// ── Extracción de fecha de cita ──────────────────────────────────────────────
+// Cuando la intención es AGENDA_CITA, el cliente ya dijo o confirmó un día y
+// hora, pero hasta ahora eso se quedaba solo como texto en la conversación —
+// nadie lo guardaba en fecha_cita ni movía al lead a "Cita Agendada". Con 0
+// citas agendadas en 23 conversaciones (ver claude.ts), una causa real era
+// que aunque Ana cerraba bien, nada capturaba automáticamente lo que se
+// acordó. Esta función lee el mensaje del cliente y, solo si confirma un día
+// Y una hora concretos, regresa la fecha exacta en hora de Ciudad de México.
+
+const DIAS_SEMANA = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+const MX_OFFSET_MS = 6 * 60 * 60 * 1000 // México es UTC-6 fijo, sin horario de verano desde 2022
+
+const HERRAMIENTA_CITA: Anthropic.Tool = {
+  name: 'extraer_cita',
+  description: 'Extrae la fecha y hora exactas de una visita, solo si el cliente ya las confirmó de forma concreta.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      fecha_hora: {
+        type: 'string',
+        description:
+          'Fecha y hora en formato "YYYY-MM-DD HH:MM" (24 horas, hora de Ciudad de México). Cadena vacía "" si el mensaje no confirma un día Y una hora concretos.',
+      },
+    },
+    required: ['fecha_hora'],
+  },
+}
+
+export async function extraerFechaCita(texto: string): Promise<string | null> {
+  const ahoraMx = new Date(Date.now() - MX_OFFSET_MS)
+  const hoyStr = ahoraMx.toISOString().slice(0, 10)
+  const diaSemana = DIAS_SEMANA[ahoraMx.getUTCDay()]
+
+  const instrucciones = `Hoy es ${diaSemana} ${hoyStr}, hora de Ciudad de México. Un cliente de una inmobiliaria escribió sobre agendar una visita. Si confirma un día Y una hora concretos (aunque sea relativo, como "el jueves a las 5" o "mañana a mediodía" o "sábado a las 11"), calcula la fecha exacta (el próximo día de la semana que corresponda si no da fecha exacta) y responde con la herramienta extraer_cita. Si falta el día, falta la hora, o es vago ("cualquier día", "en la semana", "lo voy a pensar"), responde con fecha_hora vacía.`
+
+  try {
+    const resp = await getCliente().messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 100,
+      system: instrucciones,
+      messages: [{ role: 'user', content: texto }],
+      tools: [HERRAMIENTA_CITA],
+      tool_choice: { type: 'tool', name: 'extraer_cita' },
+    })
+
+    const bloque = resp.content.find((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use')
+    const raw = (bloque?.input as { fecha_hora?: string } | undefined)?.fecha_hora?.trim()
+    if (!raw) return null
+
+    const [fecha, hora] = raw.split(' ')
+    if (!fecha || !hora) return null
+
+    const d = new Date(`${fecha}T${hora}:00-06:00`)
+    return isNaN(d.getTime()) ? null : d.toISOString()
+  } catch (e) {
+    console.error('[Cita] Extracción de fecha falló:', e)
+    return null
+  }
+}

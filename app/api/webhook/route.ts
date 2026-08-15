@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse, after } from 'next/server'
 import { evaluarFiltros } from './filtros'
-import { clasificarMensaje } from './intencion'
+import { clasificarMensaje, extraerFechaCita } from './intencion'
 import { generarRespuestaClaude } from './claude'
 import { enviarTexto, enviarImagen, enviarDocumento, alertarCarlos } from './whatsapp'
 import {
@@ -337,8 +337,17 @@ async function processIntelligentAgent(from: string, lead: Lead, texto: string, 
 
   // ── CONVERSACIÓN NATURAL vía Claude (Ana) ─────────────────────────────
   if (intencion === 'AGENDA_CITA') {
-    // Lead calificado → freno de mano: el bot se apaga y cede control al humano
-    await actualizarEstado(from, 'Calificado', { bot_activo: false })
+    // Si el cliente ya confirmó día Y hora concretos, se captura la cita real
+    // en vez de dejarla perdida como texto en la conversación. Si solo está
+    // proponiendo o todavía no confirma, se queda en Calificado como antes.
+    const fechaCita = await extraerFechaCita(texto)
+    if (fechaCita) {
+      await actualizarEstado(from, 'Cita Agendada', { bot_activo: false, fecha_cita: fechaCita })
+      await avisarConversacion(`📅 Cita agendada automáticamente para ${new Date(fechaCita).toLocaleString('es-MX', { timeZone: 'America/Mexico_City', dateStyle: 'full', timeStyle: 'short' })}`)
+    } else {
+      // Lead calificado → freno de mano: el bot se apaga y cede control al humano
+      await actualizarEstado(from, 'Calificado', { bot_activo: false })
+    }
   }
 
   // Si Claude falla (API caída, clave vencida, etc.) el lead no se queda en
