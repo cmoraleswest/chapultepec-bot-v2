@@ -63,7 +63,7 @@ const PROPIEDADES: Record<PropiedadKey, {
   },
   departamento: {
     nombre: 'Departamento Parque Chapultepec',
-    specs: 'Departamento $2,800,000 MXN, 100m² de construcción, 2 recámaras, 2 baños, balcón privado, 1 cajón de estacionamiento, Bajada de Chapultepec 18-A, Cuernavaca',
+    specs: 'Departamento $2,900,000 MXN, 100m² de construcción, 2 recámaras, 2 baños, balcón privado, 1 cajón de estacionamiento, Bajada de Chapultepec 18-A, Cuernavaca',
     whatsappTexto: 'Hola, quiero información del Departamento',
     temas: [
       'Nueva unidad disponible — la opción más accesible del desarrollo',
@@ -164,7 +164,7 @@ async function publicarEnCanal(
 // el material y mantener presencia de video constante.
 const VIDEOS: { archivo: string; gancho: string }[] = [
   { archivo: 'video1-penthouse.mp4',    gancho: 'Así se vive en el penthouse de Parque Chapultepec. 235 m², rooftop privado de 86 m² y todo el valle de Cuernavaca enfrente.' },
-  { archivo: 'video2-departamento.mp4', gancho: 'El departamento de $2,800,000 en Parque Chapultepec. 100 m², dos recámaras y balcón, a 50 m del parque.' },
+  { archivo: 'video2-departamento.mp4', gancho: 'El departamento de $2,900,000 en Parque Chapultepec. 100 m², dos recámaras y balcón, a 50 m del parque.' },
   { archivo: 'video3-cocina.mp4',       gancho: 'Cocina con isla, cubierta de granito y acabados de primera. Personalizas cocina y clósets a tu gusto.' },
   { archivo: 'video5-lifestyle.mp4',    gancho: 'Alberca climatizada, jardín tropical y seguridad 24/7. Cuernavaca a hora y media de CDMX.' },
 ]

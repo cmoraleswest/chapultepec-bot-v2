@@ -1,5 +1,5 @@
 import { getSupabase } from './supabase'
-import { enviarTexto, alertarCarlos, enviarPlantillaSeguimiento } from '../app/api/webhook/whatsapp'
+import { enviarTexto, alertarCarlos, enviarPlantillaSeguimiento, enviarPlantillaCita } from '../app/api/webhook/whatsapp'
 import { BLOQUEADOS } from '../app/api/webhook/config'
 
 interface Lead {
@@ -260,6 +260,15 @@ function fechaCitaTexto(fechaCita: string): string {
   })
 }
 
+// Día y hora como strings separados — la plantilla recordatorio_cita_chapultepec
+// los recibe como {{2}} y {{3}} en vez de una sola fecha compuesta en {{1}}.
+function diaCitaTexto(fechaCita: string): string {
+  return new Date(fechaCita).toLocaleString('es-MX', { timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long' })
+}
+function horaCitaTexto(fechaCita: string): string {
+  return new Date(fechaCita).toLocaleString('es-MX', { timeZone: 'America/Mexico_City', hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
 export async function ejecutarRecordatoriosCita(): Promise<{ enviados: number; pendientesAvisar: number }> {
   const db = getSupabase()
   let enviados = 0
@@ -293,25 +302,32 @@ export async function ejecutarRecordatoriosCita(): Promise<{ enviados: number; p
       ? `Hola${primerNombre}, te recuerdo tu visita a Parque Chapultepec mañana ${fechaTexto} en Bajada de Chapultepec 18-A. ¿Sigue en pie?`
       : `Hola${primerNombre}, tu visita a Parque Chapultepec es en unas 2 horas, ${fechaTexto}, en Bajada de Chapultepec 18-A. ¡Te esperamos!`
 
-    // No existe todavía una plantilla aprobada de "recordatorio de cita" —
-    // solo se puede mandar como texto libre, que únicamente llega si el
-    // cliente escribió en las últimas 24h. Si falla, se avisa a Carlos con
-    // el día y hora reales para que él le escriba o llame directamente.
-    const ok = await enviarTexto(lead.telefono, texto)
+    // 1) Plantilla dedicada primero — funciona sin importar la ventana de 24h,
+    //    en cuanto Meta la apruebe. 2) Si Meta aún la rechaza (no aprobada
+    //    todavía), texto libre de respaldo — solo llega si el cliente escribió
+    //    en las últimas 24h. 3) Si las dos fallan, se avisa a Carlos con el
+    //    día y hora reales para que le escriba o llame directamente. En
+    //    cualquiera de los tres casos se guarda la misma metadata de
+    //    dedup — un intento fallido no se vuelve a reintentar en el próximo
+    //    ciclo, así que nunca queda en bucle mandando lo mismo.
+    const viaPlantilla = await enviarPlantillaCita(
+      lead.telefono, lead.nombre || 'que tal', diaCitaTexto(lead.fecha_cita), horaCitaTexto(lead.fecha_cita)
+    )
+    const ok = viaPlantilla || (await enviarTexto(lead.telefono, texto))
 
     if (ok) {
       await db.from('interacciones').insert({
         lead_id: lead.id,
         tipo: 'Mensaje Saliente Bot',
-        contenido: texto,
-        metadata: { recordatorio_cita: ventana, fecha_cita: lead.fecha_cita },
+        contenido: viaPlantilla ? `[Plantilla recordatorio_cita_chapultepec] ${texto}` : texto,
+        metadata: { recordatorio_cita: ventana, fecha_cita: lead.fecha_cita, via: viaPlantilla ? 'plantilla' : 'texto_libre' },
       })
       enviados++
     } else {
       await db.from('interacciones').insert({
         lead_id: lead.id,
         tipo: 'Nota Manual',
-        contenido: `[RECORDATORIO NO ENVIADO] Cita ${fechaTexto} — WhatsApp no dejó texto libre (falta plantilla aprobada de recordatorio). Avísale tú.`,
+        contenido: `[RECORDATORIO NO ENVIADO] Cita ${fechaTexto} — ni la plantilla ni el texto libre pudieron mandarse. Avísale tú.`,
         metadata: { recordatorio_cita: ventana, fecha_cita: lead.fecha_cita, fallo: true },
       })
       paraAvisar.push({ telefono: lead.telefono, nombre: lead.nombre, fechaTexto, ventana })

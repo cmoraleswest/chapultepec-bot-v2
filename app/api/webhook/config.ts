@@ -30,7 +30,7 @@ Bajada de Chapultepec 18-A, Col. Chapultepec, Cuernavaca, Morelos`
 export const FICHA_DEPTO = `*Departamento Parque Chapultepec*
 Nueva unidad disponible
 
-$2,800,000 MXN
+$2,900,000 MXN
 100 m² de construcción
 2 recámaras · 2 baños
 Balcón privado
@@ -43,12 +43,12 @@ A 50 metros del Parque Chapultepec · 1.5 horas de CDMX
 Bajada de Chapultepec 18-A, Col. Chapultepec, Cuernavaca, Morelos`
 
 // El departamento solo tenía fotos de cuartos vacíos, sin muebles. Vender una
-// unidad de $2,800,000 con eso resta muchísimo, y se notaba: cero leads habían
+// unidad de $2,900,000 con eso resta muchísimo, y se notaba: cero leads habían
 // registrado interés en el departamento. Ahora son tarjetas con el mismo
 // tratamiento editorial que las del penthouse (precio, metros y recámaras
 // sobre la foto), para que el producto accesible no se vea de segunda.
 export const FOTOS_DEPTO: { url: string; caption: string }[] = [
-  { url: `${CDN}/refresh/depto-card-sala.jpg`, caption: 'Departamento $2,800,000 · 100 m², 2 recámaras, 2 baños' },
+  { url: `${CDN}/refresh/depto-card-sala.jpg`, caption: 'Departamento $2,900,000 · 100 m², 2 recámaras, 2 baños' },
   { url: `${CDN}/refresh/depto-card-cocina.jpg`, caption: 'Cocina con isla y granito · Personalizas antes de entregar' },
   { url: `${CDN}/refresh/depto-card-balcon.jpg`, caption: 'Balcón privado · A 50 m del Parque Chapultepec' },
 ]
@@ -66,7 +66,7 @@ export const FICHA_AMBAS = `*Parque Chapultepec* · Cuernavaca
 235 m² · 3 recámaras · 3.5 baños
 Rooftop privado de 86 m² con asador
 
-*DEPARTAMENTO* — $2,800,000 MXN
+*DEPARTAMENTO* — $2,900,000 MXN
 100 m² · 2 recámaras · 2 baños · Balcón
 
 Alberca climatizada, jardín tropical y seguridad 24/7. A 50 m del Parque Chapultepec, 1.5 h de CDMX.
@@ -84,7 +84,7 @@ const REFRESH = `${CDN}/refresh`
 export const FOTOS_PRIMER_CONTACTO: { url: string; caption: string }[] = [
   { url: `${REFRESH}/wa-01-roof-garden.jpg`, caption: 'Penthouse · Roof garden privado de 86 m² con vista al valle' },
   { url: `${REFRESH}/wa-02-interiores.jpg`, caption: 'Acabados de primera · Travertino, latón y madera' },
-  { url: `${REFRESH}/depto-card-sala.jpg`, caption: 'Departamento $2,800,000 · 100 m², 2 recámaras, 2 baños, balcón' },
+  { url: `${REFRESH}/depto-card-sala.jpg`, caption: 'Departamento $2,900,000 · 100 m², 2 recámaras, 2 baños, balcón' },
   { url: `${REFRESH}/wa-05-amenidades.jpg`, caption: 'Alberca climatizada, jardín tropical y seguridad 24/7' },
 ]
 

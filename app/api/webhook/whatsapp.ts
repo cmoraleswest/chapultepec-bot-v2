@@ -150,6 +150,41 @@ export async function enviarPlantillaSeguimiento(to: string, plantilla: string, 
   return true
 }
 
+// Plantilla dedicada de recordatorio de cita — día y hora como parámetros
+// separados, para no tener que meter una fecha completa en un solo {{1}}.
+// OJO: esta plantilla ('recordatorio_cita_chapultepec') todavía no existe
+// aprobada en Meta al momento de escribir esto — se solicitó su creación,
+// pero hasta que Meta la apruebe, cualquier intento de usarla falla y
+// ejecutarRecordatoriosCita() cae de vuelta al texto libre de respaldo.
+export async function enviarPlantillaCita(to: string, nombre: string, dia: string, hora: string): Promise<boolean> {
+  const res = await fetch(getUrl(), {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'template',
+      template: {
+        name: 'recordatorio_cita_chapultepec',
+        language: { code: 'es_MX' },
+        components: [{
+          type: 'body',
+          parameters: [
+            { type: 'text', text: nombre.slice(0, 40) },
+            { type: 'text', text: dia.slice(0, 40) },
+            { type: 'text', text: hora.slice(0, 20) },
+          ],
+        }],
+      },
+    }),
+  })
+  if (!res.ok) {
+    console.warn(`[WA] recordatorio_cita_chapultepec no disponible todavía para ${to}: ${await res.text()}`)
+    return false
+  }
+  return true
+}
+
 // Las 4 plantillas de venta que un humano puede elegir a mano en el CRM
 // cuando la ventana de 24 h ya cerró. info_ambas_propiedades no lleva
 // parámetro de cuerpo (solo la imagen del header) — mandarle el nombre como

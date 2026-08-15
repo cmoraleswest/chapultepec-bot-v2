@@ -306,7 +306,7 @@ async function processIntelligentAgent(from: string, lead: Lead, texto: string, 
     if (!okFotos) return
 
     await marcarInfoEnviada(from)
-    await avisarConversacion('Se le mandó la ficha de LAS DOS propiedades (Penthouse $4,500,000 y Departamento $2,800,000) con 4 fotos.')
+    await avisarConversacion('Se le mandó la ficha de LAS DOS propiedades (Penthouse $4,500,000 y Departamento $2,900,000) con 4 fotos.')
     return
   }
 

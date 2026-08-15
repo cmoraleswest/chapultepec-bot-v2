@@ -315,7 +315,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // penthouse: la plantilla aprobada `info_penthouse_chapultepec` + FOTOS_PH.
   // Medido en la base: 38 leads recibieron la ficha del penthouse y solo 1 la
   // del departamento. Todo el que llamaba por teléfono nunca se enteraba de la
-  // unidad de $2,800,000. Ahora, después de la plantilla (que es obligatoria
+  // unidad de $2,900,000. Ahora, después de la plantilla (que es obligatoria
   // para abrir conversación con alguien que no nos ha escrito), se manda la
   // ficha con AMBAS propiedades y las fotos de las dos, igual que el webhook.
   let envioCompleto = true

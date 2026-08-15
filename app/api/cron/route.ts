@@ -5,11 +5,23 @@ import { publicarDiario } from '../../../lib/buffer'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request): Promise<NextResponse> {
+  // Dos formas válidas de autenticarse: el cron nativo de Vercel manda el
+  // header Authorization con CRON_SECRET, que no controlamos nosotros. Para
+  // un disparador externo (cron-job.org, para el recordatorio de 2h que el
+  // cron diario de Vercel no alcanza a cubrir) hace falta un secreto que sí
+  // se pueda pegar en una URL — antes eso era ?t=chap2026, el mismo token
+  // hardcodeado y compartido que usan leads/route.ts y reporte/route.ts.
+  // Cualquiera que haya visto ese token en el repo podía disparar el cron.
+  // Ahora es su propio secreto, ?secret=, contra su propia variable de
+  // entorno, para poder rotarlo sin tocar el resto del sistema.
   const auth = req.headers.get('authorization')
   const isVercelCron = auth === `Bearer ${process.env.CRON_SECRET}`
-  const isManual = new URL(req.url).searchParams.get('t') === 'chap2026'
 
-  if (!isVercelCron && !isManual) {
+  const secretParam = new URL(req.url).searchParams.get('secret')
+  const tokenEsperado = process.env.CRON_SECRET_TOKEN
+  const isSecretToken = !!secretParam && !!tokenEsperado && secretParam === tokenEsperado
+
+  if (!isVercelCron && !isSecretToken) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
