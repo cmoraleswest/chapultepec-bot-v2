@@ -28,6 +28,16 @@ const COL_C: Record<string, string> = { 'Nuevo': '#3b82f6', 'En Conversación': 
 const RED_C: Record<string, string> = { 'Instagram': '#E1306C', 'Facebook': '#1877F2', 'TikTok': '#00f2ea' }
 const SEG_C: Record<string, string> = { 'Pendiente': '#f59e0b', 'Contactado': '#3b82f6', 'Agendado': '#8b5cf6', 'Cerrado': '#10b981', 'Sin interés': '#6b7280' }
 
+// Qué propiedad le interesa a cada lead — se guardaba en la base pero no se
+// veía en ningún lado del panel, así que para saber a quién darle
+// seguimiento de cuál unidad había que abrir la conversación completa.
+const INTERES_LABEL: Record<string, string> = {
+  'Penthouse': '🌟 PH $4.5M',
+  'Departamento': '🏠 Depto $2.9M',
+  'Ambos': '🌟🏠 Ambas',
+}
+const INTERES_COLOR: Record<string, string> = { 'Penthouse': '#8b5cf6', 'Departamento': '#0d9488', 'Ambos': '#2563eb' }
+
 function hace(f: string): string {
   const ms = Date.now() - new Date(f).getTime()
   const m = Math.floor(ms / 60000)
@@ -266,8 +276,10 @@ export default function CRM() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 30, color: '#0f172a', fontWeight: 700 }}>Penthouse Parque Chapultepec</h1>
-          <span style={{ color: '#64748b', fontSize: 18 }}>$4,500,000 MXN · Última unidad · {leads.length} leads · {pubs.length} publicaciones</span>
+          <h1 style={{ margin: 0, fontSize: 30, color: '#0f172a', fontWeight: 700 }}>Parque Chapultepec</h1>
+          <span style={{ color: '#64748b', fontSize: 18 }}>
+            <b style={{ color: '#0f172a' }}>Penthouse $4,500,000</b> · <b style={{ color: '#0f172a' }}>Departamento $2,900,000</b> · {leads.length} leads · {pubs.length} publicaciones
+          </span>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <button onClick={() => setVista('bandeja')} style={S.btn(vista === 'bandeja', '#2D6A4F')}>💬 Bandeja</button>
@@ -342,6 +354,7 @@ export default function CRM() {
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>{b.nombre || fmtTel(b.telefono)}</span>
                       <span style={S.badge(COL_C[b.estado] || '#94a3b8')}>{b.estado}</span>
+                      {b.interes && INTERES_LABEL[b.interes] && <span style={S.badge(INTERES_COLOR[b.interes])}>{INTERES_LABEL[b.interes]}</span>}
                       {esperandoResp && <span style={{ fontSize: 13, fontWeight: 700, color: '#ef4444' }}>● TE ESCRIBIÓ, SIN CONTESTAR</span>}
                       {!b.bot_activo && <span style={{ fontSize: 13, color: '#f59e0b', fontWeight: 700 }}>👤 tú llevas el chat</span>}
                     </div>
@@ -399,6 +412,9 @@ export default function CRM() {
                     <div onClick={() => verHistorial(lead)} style={{ cursor: 'pointer', marginBottom: 8 }}>
                       <div style={{ fontSize: 17, fontWeight: 700, color: '#0f172a' }}>{lead.nombre || fmtTel(lead.telefono)}</div>
                       {lead.nombre && <div style={{ fontSize: 15, color: '#475569' }}>{fmtTel(lead.telefono)}</div>}
+                      {lead.interes && INTERES_LABEL[lead.interes] && (
+                        <div style={{ marginTop: 3 }}><span style={{ ...S.badge(INTERES_COLOR[lead.interes]), fontSize: 11, padding: '2px 8px' }}>{INTERES_LABEL[lead.interes]}</span></div>
+                      )}
                       <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 3, display: 'flex', gap: 6, alignItems: 'center' }}>
                         {hace(lead.actualizado_en)}
                         {lead.ultimo_status === 'read' && <span style={{ color: '#22c55e', fontWeight: 700 }}>✓✓ Leído</span>}
@@ -571,7 +587,10 @@ export default function CRM() {
               <div>
                 <h3 style={{ margin: 0, fontSize: 17 }}>{sel.nombre || fmtTel(sel.telefono)}</h3>
                 {sel.nombre && <div style={{ color: '#64748b', fontSize: 13, fontFamily: 'monospace' }}>{fmtTel(sel.telefono)}</div>}
-                <div style={{ marginTop: 4 }}><span style={S.badge(COL_C[sel.estado])}>{sel.estado}</span></div>
+                <div style={{ marginTop: 4, display: 'flex', gap: 6 }}>
+                  <span style={S.badge(COL_C[sel.estado])}>{sel.estado}</span>
+                  {sel.interes && INTERES_LABEL[sel.interes] && <span style={S.badge(INTERES_COLOR[sel.interes])}>{INTERES_LABEL[sel.interes]}</span>}
+                </div>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
                 <a href={`https://wa.me/52${sel.telefono.replace(/\D/g, '').replace(/^52/, '')}`} target="_blank" rel="noreferrer"
