@@ -50,6 +50,21 @@ function ventana24(ultimoEntrante: string | null): { abierta: boolean; label: st
   return { abierta: true, label: `Abierta ${Math.floor(restan)}h`, color: '#10b981', icono: '🟢' }
 }
 
+// Qué plantillas ya se le mandaron a este lead y cuándo — sin esto, saber
+// "cuál ya usé y cuál sigue" significaba leer todo el historial a mano
+// buscando el nombre de la plantilla entre los mensajes.
+function plantillasEnviadas(hist: Interaccion[]): Record<string, string> {
+  const ultima: Record<string, string> = {}
+  for (const msg of hist) {
+    for (const p of PLANTILLAS_CRM_UI) {
+      if (msg.contenido.includes(p.valor)) {
+        if (!ultima[p.valor] || msg.creado_en > ultima[p.valor]) ultima[p.valor] = msg.creado_en
+      }
+    }
+  }
+  return ultima
+}
+
 function fmtTel(t: string): string {
   const d = t.replace(/\D/g, '')
   if (d.length === 12 && d.startsWith('52')) return `+52 ${d.slice(2, 5)} ${d.slice(5, 8)} ${d.slice(8)}`
@@ -610,18 +625,32 @@ export default function CRM() {
                   {enviandoMsg ? '...' : 'Enviar'}
                 </button>
               </div>
-            ) : (
-              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                <select value={plantillaSel} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPlantillaSel(e.target.value as PlantillaCRM)}
-                  style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 16 }}>
-                  {PLANTILLAS_CRM_UI.map(p => <option key={p.valor} value={p.valor}>{p.label}</option>)}
-                </select>
-                <button onClick={() => enviarPlantillaManual(sel.telefono, sel.id, plantillaSel)} disabled={enviandoPlantilla}
-                  style={{ padding: '12px 20px', borderRadius: 10, border: 'none', background: '#f59e0b', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>
-                  {enviandoPlantilla ? '...' : 'Enviar plantilla'}
-                </button>
-              </div>
-            )}
+            ) : (() => {
+              const yaEnviadas = plantillasEnviadas(hist)
+              return (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <select value={plantillaSel} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPlantillaSel(e.target.value as PlantillaCRM)}
+                      style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 16 }}>
+                      {PLANTILLAS_CRM_UI.map(p => (
+                        <option key={p.valor} value={p.valor}>
+                          {p.label}{yaEnviadas[p.valor] ? ` — ✓ enviada hace ${hace(yaEnviadas[p.valor])}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <button onClick={() => enviarPlantillaManual(sel.telefono, sel.id, plantillaSel)} disabled={enviandoPlantilla}
+                      style={{ padding: '12px 20px', borderRadius: 10, border: 'none', background: '#f59e0b', color: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      {enviandoPlantilla ? '...' : 'Enviar plantilla'}
+                    </button>
+                  </div>
+                  {Object.keys(yaEnviadas).length > 0 && (
+                    <div style={{ fontSize: 13, color: '#64748b', marginTop: 6 }}>
+                      Ya enviadas a este lead: {PLANTILLAS_CRM_UI.filter(p => yaEnviadas[p.valor]).map(p => p.label).join(' · ')}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
 
             <div style={{ borderTop: '2px solid #e2e8f0', paddingTop: 12 }}>
               {/* Encabezado fijo del panel: estado del lead + hace cuánto escribió,
