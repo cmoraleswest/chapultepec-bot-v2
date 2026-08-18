@@ -38,8 +38,12 @@ Antes de hoy este proyecto NO tenía remote de GitHub — el deploy salía direc
 
 A partir de hoy: `https://github.com/cmoraleswest/chapultepec-bot-v2` (privado) es el repositorio real de este proyecto. El deploy a producción sigue siendo manual vía Vercel CLI — conectar el remoto NO cambió nada del despliegue, solo da visibilidad del código real a cualquier sesión futura.
 
-## Galería de medios consolidada (2026-08-18)
-`~/chapultepec-fotos` (repo separado, ver su propio ESTADO.md) ahora tiene `public/galeria/` con TODO el material de marketing disponible en un solo lugar, incluyendo 49 fotos/videos recuperados del repo viejo `chapultepec-bot` que no tenían respaldo. `lib/buffer.ts` sigue usando solo `refresh/` (5 piezas) y 4 videos — pendiente decisión de Carlos sobre ampliar la rotación con la galería nueva.
+## Galería de medios consolidada + rotación ampliada (2026-08-18)
+`~/chapultepec-fotos` (repo separado, ver su propio ESTADO.md) tiene `public/galeria/` con TODO el material de marketing en un solo lugar, incluyendo 49 fotos/videos recuperados del repo viejo `chapultepec-bot` que no tenían respaldo.
+
+`lib/buffer.ts` ya se amplió: `PIEZAS` pasó de 5 a 11 temas (las 5 piezas diseñadas de `refresh/` + 6 nuevas basadas en foto real de `galeria/`, con ángulo de inversión/plusvalía/rendimiento). El ciclo diario ahora tarda 11 días en repetirse en vez de 5. Deployado a producción y verificado que el dashboard y el webhook siguen respondiendo igual — NO se forzó ningún post de prueba real a Instagram/TikTok/Facebook, la próxima publicación automática (cron diario) ya usa la rotación nueva.
+
+Pendiente si Carlos quiere más: agregar más piezas de foto real al array `PIEZAS` en `lib/buffer.ts` (mismo patrón: slug, tema con el ángulo de mensaje, propiedad, `fuente: 'foto'`, nombre exacto del archivo en `galeria/`) — quedan ~80 fotos/videos sin usar todavía en la galería.
 
 ## Reglas para no revolver
 - Este archivo, no la memoria de una sesión de chat, es la verdad. Si algo aquí contradice lo que dice una sesión vieja, gana este archivo (y si este archivo está desactualizado, se corrige aquí, no se discute en el chat y se olvida).
