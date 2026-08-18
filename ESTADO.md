@@ -38,6 +38,9 @@ Antes de hoy este proyecto NO tenía remote de GitHub — el deploy salía direc
 
 A partir de hoy: `https://github.com/cmoraleswest/chapultepec-bot-v2` (privado) es el repositorio real de este proyecto. El deploy a producción sigue siendo manual vía Vercel CLI — conectar el remoto NO cambió nada del despliegue, solo da visibilidad del código real a cualquier sesión futura.
 
+## Galería de medios consolidada (2026-08-18)
+`~/chapultepec-fotos` (repo separado, ver su propio ESTADO.md) ahora tiene `public/galeria/` con TODO el material de marketing disponible en un solo lugar, incluyendo 49 fotos/videos recuperados del repo viejo `chapultepec-bot` que no tenían respaldo. `lib/buffer.ts` sigue usando solo `refresh/` (5 piezas) y 4 videos — pendiente decisión de Carlos sobre ampliar la rotación con la galería nueva.
+
 ## Reglas para no revolver
 - Este archivo, no la memoria de una sesión de chat, es la verdad. Si algo aquí contradice lo que dice una sesión vieja, gana este archivo (y si este archivo está desactualizado, se corrige aquí, no se discute en el chat y se olvida).
 - Nunca mezclar con `~/chapultepec-admin` (condominio) ni con `~/chapultepec-bot` (V1 viejo, detenido, no tocar) ni con Poza Rica.
