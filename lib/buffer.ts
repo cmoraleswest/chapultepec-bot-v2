@@ -14,12 +14,27 @@ type PropiedadKey = 'penthouse' | 'departamento'
 // imagen cuadrada en las tres recortaba el texto y se veía descuidado.
 // La propiedad que se promociona va amarrada al tema para que la imagen y el
 // texto hablen de lo mismo.
-const PIEZAS: { slug: string; tema: string; propiedad: PropiedadKey }[] = [
-  { slug: '01-roof-garden', tema: 'Roof garden privado de 86 m² con vista al valle de Cuernavaca', propiedad: 'penthouse' },
-  { slug: '02-interiores',  tema: 'Interiores — sala-comedor con ventanal panorámico y acabados de lujo', propiedad: 'penthouse' },
-  { slug: '03-ubicacion',   tema: 'Ubicación privilegiada — a 50 m del Parque Chapultepec, 1.5 h de CDMX', propiedad: 'departamento' },
-  { slug: '04-inversion',   tema: 'Oportunidad de inversión — zona consolidada y plusvalía comprobada', propiedad: 'departamento' },
-  { slug: '05-amenidades',  tema: 'Amenidades — alberca climatizada, jardín tropical y seguridad 24/7', propiedad: 'penthouse' },
+//
+// ── PIEZAS DE FOTO REAL (galeria, ago-2026) ──────────────────────────────────
+// Publicar solo piezas diseñadas se repetía cada 5 días y no dejaba ver nada
+// "real" — en inmobiliaria de lujo la foto auténtica (sin texto encima) genera
+// más confianza que un anuncio evidente, y rompe el patrón de feed. Estas usan
+// UNA sola foto de galeria/ para las tres redes (no hay recorte por formato,
+// es foto cruda) y el ángulo del texto es el que cambia: mitad estilo de vida,
+// mitad números duros de inversión (plusvalía, rendimiento por renta, retorno)
+// — variedad de imagen Y de mensaje, no solo repetir el mismo gancho bonito.
+const PIEZAS: { slug: string; tema: string; propiedad: PropiedadKey; fuente: 'diseno' | 'foto'; foto?: string }[] = [
+  { slug: '01-roof-garden', tema: 'Roof garden privado de 86 m² con vista al valle de Cuernavaca', propiedad: 'penthouse', fuente: 'diseno' },
+  { slug: '02-interiores',  tema: 'Interiores — sala-comedor con ventanal panorámico y acabados de lujo', propiedad: 'penthouse', fuente: 'diseno' },
+  { slug: '03-ubicacion',   tema: 'Ubicación privilegiada — a 50 m del Parque Chapultepec, 1.5 h de CDMX', propiedad: 'departamento', fuente: 'diseno' },
+  { slug: '04-inversion',   tema: 'Oportunidad de inversión — zona consolidada y plusvalía comprobada', propiedad: 'departamento', fuente: 'diseno' },
+  { slug: '05-amenidades',  tema: 'Amenidades — alberca climatizada, jardín tropical y seguridad 24/7', propiedad: 'penthouse', fuente: 'diseno' },
+  { slug: 'foto-plusvalia',    tema: 'Plusvalía comprobada — Parque Chapultepec ha subido de valor año con año, comprar aquí es asegurar patrimonio, no solo un lugar para vivir', propiedad: 'departamento', fuente: 'foto', foto: 'foto-exterior.jpg' },
+  { slug: 'foto-rendimiento',  tema: 'Rendimiento por renta — con la demanda de Airbnb en Cuernavaca, un Penthouse de este nivel genera flujo mensual atractivo para quien busca invertir, no solo habitar', propiedad: 'penthouse', fuente: 'foto', foto: 'foto-real-1.jpg' },
+  { slug: 'foto-retorno',      tema: 'Retorno de inversión — comparado con instrumentos financieros tradicionales, bienes raíces en zona consolidada da plusvalía y renta al mismo tiempo, un activo que trabaja para ti', propiedad: 'penthouse', fuente: 'foto', foto: 'render-master.jpg' },
+  { slug: 'foto-comparativo',  tema: 'Lo que rinde tu dinero aquí — lo que en CDMX alcanza para un departamento chico, en Cuernavaca a hora y media alcanza para esto, con plusvalía en zona en crecimiento', propiedad: 'departamento', fuente: 'foto', foto: 'fachada-real1.jpg' },
+  { slug: 'foto-real',         tema: 'Espacios reales, no solo renders — así se ve hoy, avance real de obra, calidad que se nota antes de la entrega', propiedad: 'departamento', fuente: 'foto', foto: 'comparativa.jpg' },
+  { slug: 'foto-lifestyle',    tema: 'Vida real en el Penthouse — atardecer desde el rooftop, la razón por la que la gente compra aquí y no solo invierte', propiedad: 'penthouse', fuente: 'foto', foto: 'foto-real-2.jpg' },
 ]
 
 // Formato nativo de cada red. TikTok usa el vertical de stories.
@@ -29,7 +44,11 @@ const FORMATO: Record<string, string> = {
   tiktok: 'instagram-stories',
 }
 
-const imagenDe = (red: string, slug: string) => `${CDN}/refresh/${FORMATO[red]}-${slug}.jpg`
+// Piezas "diseno" tienen recorte por red; piezas "foto" son crudas, misma URL
+// para las tres — perder el recorte por formato es aceptable a cambio de que
+// la foto se vea auténtica y no como un anuncio.
+const imagenDe = (red: string, pieza: { slug: string; fuente: 'diseno' | 'foto'; foto?: string }) =>
+  pieza.fuente === 'foto' ? `${CDN}/galeria/${pieza.foto}` : `${CDN}/refresh/${FORMATO[red]}-${pieza.slug}.jpg`
 
 // Ambas propiedades se promocionan por igual — el rotador alterna día por
 // medio entre las dos en vez de solo publicar del penthouse.
@@ -261,7 +280,7 @@ export async function publicarDiario(): Promise<{ ok: boolean; detalle: string }
   let algunoFallo = false
   for (const [id, red] of [[IG, 'instagram'], [TT, 'tiktok'], [FB, 'facebook']] as const) {
     try {
-      const r = await publicarEnCanal(id, caption, imagenDe(red, pieza.slug), red)
+      const r = await publicarEnCanal(id, caption, imagenDe(red, pieza), red)
       resultados.push(r.ok ? `${red}: OK` : `${red}: ERROR (${r.detalle})`)
       if (!r.ok) {
         algunoFallo = true
@@ -273,7 +292,7 @@ export async function publicarDiario(): Promise<{ ok: boolean; detalle: string }
         red: NOMBRE_RED[red],
         tipo: 'post',
         caption,
-        imagen_url: imagenDe(red, pieza.slug),
+        imagen_url: imagenDe(red, pieza),
         buffer_id: r.bufferId ?? null,
         estado: 'Publicado',
       })
@@ -315,14 +334,14 @@ export async function publicarDiario(): Promise<{ ok: boolean; detalle: string }
   // salió y eso es lo que no se puede perder.
   try {
     const textoHistoria = `${tema}\n\nEscríbenos por WhatsApp: wa.me/5217772408027`
-    const rs = await publicarEnCanal(IG, textoHistoria, imagenDe('tiktok', pieza.slug), 'instagram', 'story')
+    const rs = await publicarEnCanal(IG, textoHistoria, imagenDe('tiktok', pieza), 'instagram', 'story')
     resultados.push(rs.ok ? 'instagram-historia: OK' : `instagram-historia: ERROR (${rs.detalle})`)
     if (rs.ok) {
       await db.from('publicaciones').insert({
         red: 'Instagram',
         tipo: 'historia',
         caption: textoHistoria,
-        imagen_url: imagenDe('tiktok', pieza.slug),
+        imagen_url: imagenDe('tiktok', pieza),
         buffer_id: rs.bufferId ?? null,
         estado: 'Publicado',
       })
