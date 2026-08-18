@@ -30,11 +30,11 @@ const PIEZAS: { slug: string; tema: string; propiedad: PropiedadKey; fuente: 'di
   { slug: '04-inversion',   tema: 'Oportunidad de inversión — zona consolidada y plusvalía comprobada', propiedad: 'departamento', fuente: 'diseno' },
   { slug: '05-amenidades',  tema: 'Amenidades — alberca climatizada, jardín tropical y seguridad 24/7', propiedad: 'penthouse', fuente: 'diseno' },
   { slug: 'foto-plusvalia',    tema: 'Plusvalía comprobada — Parque Chapultepec ha subido de valor año con año, comprar aquí es asegurar patrimonio, no solo un lugar para vivir', propiedad: 'departamento', fuente: 'foto', foto: 'foto-exterior.jpg' },
-  { slug: 'foto-rendimiento',  tema: 'Rendimiento por renta — con la demanda de Airbnb en Cuernavaca, un Penthouse de este nivel genera flujo mensual atractivo para quien busca invertir, no solo habitar', propiedad: 'penthouse', fuente: 'foto', foto: 'foto-real-1.jpg' },
-  { slug: 'foto-retorno',      tema: 'Retorno de inversión — comparado con instrumentos financieros tradicionales, bienes raíces en zona consolidada da plusvalía y renta al mismo tiempo, un activo que trabaja para ti', propiedad: 'penthouse', fuente: 'foto', foto: 'render-master.jpg' },
-  { slug: 'foto-comparativo',  tema: 'Lo que rinde tu dinero aquí — lo que en CDMX alcanza para un departamento chico, en Cuernavaca a hora y media alcanza para esto, con plusvalía en zona en crecimiento', propiedad: 'departamento', fuente: 'foto', foto: 'fachada-real1.jpg' },
-  { slug: 'foto-real',         tema: 'Espacios reales, no solo renders — así se ve hoy, avance real de obra, calidad que se nota antes de la entrega', propiedad: 'departamento', fuente: 'foto', foto: 'comparativa.jpg' },
-  { slug: 'foto-lifestyle',    tema: 'Vida real en el Penthouse — atardecer desde el rooftop, la razón por la que la gente compra aquí y no solo invierte', propiedad: 'penthouse', fuente: 'foto', foto: 'foto-real-2.jpg' },
+  { slug: 'foto-rendimiento',  tema: 'Rendimiento por renta — con la demanda de Airbnb en Cuernavaca, un Penthouse de este nivel genera flujo mensual atractivo para quien busca invertir, no solo habitar', propiedad: 'penthouse', fuente: 'foto', foto: 'ph-alberca-real.jpg' },
+  { slug: 'foto-retorno',      tema: 'Retorno de inversión — comparado con instrumentos financieros tradicionales, bienes raíces en zona consolidada da plusvalía y renta al mismo tiempo, un activo que trabaja para ti', propiedad: 'penthouse', fuente: 'foto', foto: 'ph-rooftop-hero.jpg' },
+  { slug: 'foto-comparativo',  tema: 'Lo que rinde tu dinero aquí — lo que en CDMX alcanza para un departamento chico, en Cuernavaca a hora y media alcanza para esto, con plusvalía en zona en crecimiento', propiedad: 'departamento', fuente: 'foto', foto: 'depto-fachada.jpg' },
+  { slug: 'foto-comparacion',  tema: 'Compara y decide — Penthouse o Departamento, mismo desarrollo, dos formas de invertir en Parque Chapultepec', propiedad: 'departamento', fuente: 'foto', foto: 'comparativa.jpg' },
+  { slug: 'foto-lifestyle',    tema: 'Vida real en el Penthouse — tardes de asador en el rooftop, la razón por la que la gente compra aquí y no solo invierte', propiedad: 'penthouse', fuente: 'foto', foto: 'ph-rooftop-asador.jpg' },
 ]
 
 // Formato nativo de cada red. TikTok usa el vertical de stories.
