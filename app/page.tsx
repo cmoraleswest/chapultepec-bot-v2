@@ -125,6 +125,8 @@ export default function CRM() {
   const [msgExito, setMsgExito] = useState('')
   const [msgManual, setMsgManual] = useState('')
   const [enviandoMsg, setEnviandoMsg] = useState(false)
+  const [notaManual, setNotaManual] = useState('')
+  const [guardandoNota, setGuardandoNota] = useState(false)
   const [enviandoPaquete, setEnviandoPaquete] = useState(false)
   const [mensajesNuevos, setMensajesNuevos] = useState<{nombre: string, texto: string, leadId: string}[]>([])
   const ultimoMsgRef = useRef<Record<string, string>>({})
@@ -184,12 +186,10 @@ export default function CRM() {
     return () => clearInterval(i)
   }, [sel, refreshHist])
 
-  // Ancla el scroll de la conversación hasta abajo — al abrir un lead o al
-  // llegar un mensaje nuevo, lo último que se dijo debe verse sin que haya
-  // que desplazarse a mano.
-  useEffect(() => {
-    if (chatBoxRef.current) chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight
-  }, [hist, sel])
+  // Antes se anclaba el scroll hasta abajo para ver lo último que se dijo.
+  // Ahora la conversación se pinta con lo más reciente arriba (ver el map en
+  // el render), así que lo último ya está a la vista solo con abrir el lead,
+  // sin necesidad de forzar ningún scroll.
 
   const verHistorial = async (lead: Lead) => {
     setSel(lead)
@@ -220,6 +220,27 @@ export default function CRM() {
       alert('No se pudo enviar — revisa tu conexión e intenta otra vez.')
     }
     setEnviandoMsg(false)
+  }
+
+  // Para cuando Carlos ya contestó al cliente a mano por fuera del CRM (por
+  // ejemplo WhatsApp normal en el 175) y solo quiere dejar registro. No manda
+  // nada, así que no depende de la ventana de 24h como enviarMensaje.
+  const agregarNota = async (telefono: string, leadId: string) => {
+    if (!notaManual.trim()) return
+    setGuardandoNota(true)
+    try {
+      const res = await fetch(`/api/leads?t=${T}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ telefono, nota: notaManual }) })
+      const data = await res.json()
+      if (data.ok) {
+        setNotaManual('')
+        await refreshHist(leadId)
+      } else {
+        alert(`No se pudo guardar la nota: ${data.error || 'error desconocido'}`)
+      }
+    } catch {
+      alert('No se pudo guardar — revisa tu conexión e intenta otra vez.')
+    }
+    setGuardandoNota(false)
   }
 
   // FOTOS_CHAT/FOTOS_DEPTO ya existían "para reenvíos y envíos manuales" pero
@@ -646,10 +667,13 @@ export default function CRM() {
             </div>
 
             {hist.length === 0 ? <p style={{ color: '#94a3b8', fontSize: 15 }}>Sin mensajes</p> : (() => {
-                // Orden cronológico natural: lo más viejo arriba, lo más
-                // reciente abajo, como cualquier chat — el scroll se ancla
-                // solo hasta el fondo, así que no hace falta invertir nada.
+                // Lo más reciente arriba, no abajo — Carlos lo pidió así para
+                // ver el último mensaje sin tener que bajar el scroll cada
+                // vez que abre un lead. `hist` sigue en orden cronológico
+                // ascendente (lo usan otras partes del componente), aquí solo
+                // se invierte para pintar.
                 const pendiente = hist[hist.length - 1]?.tipo === 'Mensaje Entrante'
+                const histParaPintar = [...hist].reverse()
 
                 // El tipo real que guarda la base es 'Mensaje Entrante' /
                 // 'Mensaje Saliente Bot' / 'Nota Manual'. El código comparaba
@@ -679,9 +703,9 @@ export default function CRM() {
                     {/* Contenedor con scroll propio — el resto del panel (header,
                         botones, ventana de 24h, input) se queda fijo arriba. */}
                     <div ref={chatBoxRef} style={{ maxHeight: '45vh', overflowY: 'auto', paddingRight: 4 }}>
-                      {hist.map((msg, i) => {
+                      {histParaPintar.map((msg, i) => {
                         const e = estilo(msg)
-                        const esUltimo = i === hist.length - 1
+                        const esUltimo = i === 0
                         return (
                           <div key={msg.id} style={{ marginBottom: 10, padding: 12, borderRadius: 10, background: e.bg,
                             borderLeft: `4px solid ${e.linea}`, boxShadow: esUltimo ? `0 0 0 2px ${e.linea}55` : 'none' }}>
@@ -714,6 +738,20 @@ export default function CRM() {
                 </button>
               </div>
             ) : null}
+            {/* Nota rápida — para cuando Carlos ya contestó al cliente a mano
+                por fuera del CRM (WhatsApp normal en el 175) y solo quiere
+                dejar registro. No manda nada por WhatsApp, así que no
+                depende de la ventana de 24h como el input de arriba. */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <input placeholder="Nota rápida — no se envía, solo se guarda..." value={notaManual}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotaManual(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') agregarNota(sel.telefono, sel.id) }}
+                style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '2px solid #e2e8f0', background: '#fffbeb', color: '#0f172a', fontSize: 14 }} />
+              <button onClick={() => agregarNota(sel.telefono, sel.id)} disabled={guardandoNota || !notaManual.trim()}
+                style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#f59e0b', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+                {guardandoNota ? '...' : '📌 Guardar'}
+              </button>
+            </div>
             {/* Enviar más fotos a mano — solo con ventana abierta, misma regla
                 que el texto libre. Las fotos ya existían listas para esto en
                 config.ts, solo les faltaba un botón. Si ya se mandaron antes

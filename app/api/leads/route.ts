@@ -145,9 +145,9 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
 export async function PUT(req: NextRequest): Promise<NextResponse> {
   if (!auth(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const body = await req.json() as { telefono: string; mensaje?: string; plantilla?: string; fotos?: 'ph' | 'depto' }
-  if (!body.telefono || (!body.mensaje && !body.plantilla && !body.fotos)) {
-    return NextResponse.json({ error: 'telefono y (mensaje, plantilla o fotos) requeridos' }, { status: 400 })
+  const body = await req.json() as { telefono: string; mensaje?: string; plantilla?: string; fotos?: 'ph' | 'depto'; nota?: string }
+  if (!body.telefono || (!body.mensaje && !body.plantilla && !body.fotos && !body.nota)) {
+    return NextResponse.json({ error: 'telefono y (mensaje, plantilla, fotos o nota) requeridos' }, { status: 400 })
   }
 
   const tel = body.telefono.replace(/\D/g, '')
@@ -155,6 +155,21 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
 
   const db = getSupabase()
   const { data: lead } = await db.from('leads').select('id, nombre').eq('telefono', telWA).single()
+
+  // ── NOTA MANUAL ─────────────────────────────────────────────────────────
+  // Para cuando Carlos ya contestó al cliente a mano, por fuera del CRM (por
+  // ejemplo por WhatsApp normal en el 175), y solo quiere dejar registro de
+  // qué pasó. No manda nada por WhatsApp, no depende de la ventana de 24h.
+  if (body.nota) {
+    if (!lead) return NextResponse.json({ error: 'Lead no encontrado' }, { status: 404 })
+    await db.from('interacciones').insert({
+      lead_id: lead.id,
+      tipo: 'Nota Manual',
+      contenido: body.nota,
+      metadata: { manual: true },
+    })
+    return NextResponse.json({ ok: true })
+  }
 
   // ── ENVIAR MÁS FOTOS A MANO ────────────────────────────────────────────────
   // FOTOS_CHAT y FOTOS_DEPTO ya existían "para reenvíos y envíos manuales"
