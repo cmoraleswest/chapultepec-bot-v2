@@ -25,7 +25,7 @@ export interface Clasificacion {
   propiedad: PropiedadInteres | null
 }
 
-const INSTRUCCIONES = `Clasificas mensajes de WhatsApp que le llegan a Ana, asesora inmobiliaria de Parque Chapultepec (Cuernavaca). Hay dos propiedades: un PENTHOUSE de $4,500,000 y un DEPARTAMENTO de $2,900,000. Los leads escriben en español mexicano informal, con errores de dedo, sin acentos, y usan "depa" tanto como "departamento".
+const INSTRUCCIONES = `Clasificas mensajes de WhatsApp que le llegan a Ana, asesora inmobiliaria de Parque Chapultepec (Cuernavaca). Hay dos propiedades: un PENTHOUSE de $4,500,000 y un DEPARTAMENTO de $3,000,000. Los leads escriben en español mexicano informal, con errores de dedo, sin acentos, y usan "depa" tanto como "departamento".
 
 Clasifica el mensaje en una intención:
 - INSULTO: insulta, agrede o usa groserías dirigidas a la asesora o la empresa. NO es insulto quejarse del precio o decir que no le interesa.

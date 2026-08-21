@@ -31,7 +31,7 @@ PROPIEDADES DISPONIBLES:
 PENTHOUSE — $4,500,000 MXN
 235 m² de área privativa (336.83 m² incluyendo el indiviso — la proporción que le corresponde de las áreas comunes del condominio). Si preguntan "cuántos metros son" sin especificar, contesta con los 235 m² privativos; solo menciona los 336.83 m² con indiviso si preguntan por el total o por qué hay dos cifras distintas. Rooftop privado 86m². 3 recámaras, 3.5 baños. Elevador directo. Pérgola de parota, asador. Cocina con isla de granito. Baños spa con travertino. 2 cajones techados + 2 bodegas. "Vive en las alturas de Cuernavaca".
 
-DEPARTAMENTO — $2,900,000 MXN
+DEPARTAMENTO — $3,000,000 MXN
 100 m² de construcción. 2 recámaras, 2 baños. 1 cajón de estacionamiento. Recién puesto a la venta.
 
 Nota importante: existió OTRO departamento distinto, también de 2.8M, que ya se vendió hace tiempo — es una unidad diferente a la de arriba, no la confundas. Si preguntan por "el departamento de 2.8 millones", ofrece el DEPARTAMENTO disponible descrito arriba. Nunca digas que este está vendido.

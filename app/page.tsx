@@ -310,7 +310,7 @@ export default function CRM() {
         <div>
           <h1 style={{ margin: 0, fontSize: 30, color: '#0f172a', fontWeight: 700 }}>Parque Chapultepec</h1>
           <span style={{ color: '#64748b', fontSize: 18 }}>
-            <b style={{ color: '#0f172a' }}>Penthouse $4,500,000</b> · <b style={{ color: '#0f172a' }}>Departamento $2,900,000</b> · {leads.length} leads · {pubs.length} publicaciones
+            <b style={{ color: '#0f172a' }}>Penthouse $4,500,000</b> · <b style={{ color: '#0f172a' }}>Departamento $3,000,000</b> · {leads.length} leads · {pubs.length} publicaciones
           </span>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
