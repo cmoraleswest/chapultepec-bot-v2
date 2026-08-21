@@ -47,10 +47,11 @@ Bajada de Chapultepec 18-A, Col. Chapultepec, Cuernavaca, Morelos`
 // registrado interés en el departamento. Ahora son tarjetas con el mismo
 // tratamiento editorial que las del penthouse (precio, metros y recámaras
 // sobre la foto), para que el producto accesible no se vea de segunda.
+// Fotos reales de la unidad terminada y amueblada, actualizadas 20-ago-2026.
 export const FOTOS_DEPTO: { url: string; caption: string }[] = [
   { url: `${CDN}/refresh/depto-card-sala.jpg`, caption: 'Departamento $3,000,000 · 100 m², 2 recámaras, 2 baños' },
-  { url: `${CDN}/refresh/depto-card-cocina.jpg`, caption: 'Cocina con isla y granito · Personalizas antes de entregar' },
-  { url: `${CDN}/refresh/depto-card-balcon.jpg`, caption: 'Balcón privado · A 50 m del Parque Chapultepec' },
+  { url: `${CDN}/refresh/depto-card-cocina.jpg`, caption: 'Cocina con isla y granito · Se entrega así, amueblada' },
+  { url: `${CDN}/refresh/depto-card-balcon.jpg`, caption: 'Recámara principal · Clósets a medida' },
 ]
 
 // ── PRIMER CONTACTO ─────────────────────────────────────────────────────────
