@@ -63,7 +63,7 @@ export const FOTOS_DEPTO: { url: string; caption: string }[] = [
 export const FICHA_AMBAS = `*Parque Chapultepec* · Cuernavaca
 
 *PENTHOUSE* — $4,500,000 MXN
-235 m² · 3 recámaras · 3.5 baños
+336.83 m² · 3 recámaras · 3.5 baños
 Rooftop privado de 86 m² con asador
 
 *DEPARTAMENTO* — $2,900,000 MXN
