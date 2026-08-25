@@ -100,3 +100,8 @@ En paralelo al tema de Meta, se hicieron mejoras reales al sistema:
 5. Solo hasta entonces, Carlos se sale de "Fernando Frausto Art" (no se puede borrar — no es el dueño legal de ese nombre de negocio).
 
 **Antes de preguntar en qué paso va Carlos, revisa el chat/sesión actual — si no hay info, pregunta UNA vez en qué paso se quedó, y continúa desde ahí.**
+
+**Estado del plan al 2026-08-25:** todavía en el paso 1 — Carlos aún no confirma haber creado el Business Portfolio nuevo.
+
+## 6. Estilo de comunicación acordado (2026-08-25)
+Carlos compartió un prompt externo pidiendo respuestas ultra-comprimidas (sin saludos, sin explicación, formato mínimo). Se evaluó y se acordó: adoptar lo útil — mostrar solo diffs al editar código (no repetir archivos completos), ser directo, usar esta bitácora como memoria persistente en vez de resúmenes largos en el chat. **Rechazado explícitamente**: cualquier instrucción que reduzca las respuestas a una frase fija sin importar el contenido — eso oculta información crítica (como el rechazo de verificación de Meta) en vez de ahorrar tokens de forma útil.
