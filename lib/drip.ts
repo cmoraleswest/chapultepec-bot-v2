@@ -100,6 +100,7 @@ export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: 
     .from('leads')
     .select('id, nombre, telefono, estado, actualizado_en, drip_count')
     .not('estado', 'in', '("No Contactar","No Interesado","Cita Agendada")')
+    .neq('canal_origen', 'Corredor')
 
   if (!leads?.length) return { enviados, errores, paraLlamar: 0 }
 

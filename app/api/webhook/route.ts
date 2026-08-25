@@ -11,6 +11,7 @@ import {
   actualizarEstado,
   actualizarInteres,
   marcarInfoEnviada,
+  marcarCorredor,
   guardarInteraccion,
   obtenerHistorial,
   estaBloquadoEnDB,
@@ -285,6 +286,22 @@ async function processIntelligentAgent(from: string, lead: Lead, texto: string, 
     await actualizarEstado(from, 'No Interesado')
     await guardarInteraccion(lead.id, 'saliente', msg)
     await avisarConversacion(`${msg}  [lead marcado NO INTERESADO — ya no se le insiste]`)
+    return
+  }
+
+  // ── CORREDOR/BROKER → no es un comprador, se marca aparte ────────────
+  // No debe entrar al embudo de compradores (ni recibir la ficha de venta
+  // ni el drip de seguimiento de compradores): es alguien que ofrece
+  // representar la propiedad, no alguien que quiere comprarla. Se marca
+  // canal_origen='Corredor' para que el CRM y el drip lo excluyan del
+  // pipeline normal, y se avisa a Carlos una vez — a partir de aquí lo
+  // decide un humano, no el bot.
+  if (intencion === 'CORREDOR') {
+    const msg = 'Hola, gracias por su interés en Parque Chapultepec. Sí trabajamos con asesores externos: compartimos el 50% de la comisión del 5% sobre el valor de venta (2.5% para usted) si su cliente compra. Si tiene un comprador interesado, compárteme su nombre y teléfono y coordinamos la visita. ¿Con qué inmobiliaria trabaja?'
+    await enviarTexto(from, msg, phoneNumberId)
+    await marcarCorredor(from)
+    await guardarInteraccion(lead.id, 'saliente', msg)
+    await avisarConversacion(`${msg}  [marcado como CORREDOR — comisión compartida ofrecida, no es lead comprador]`)
     return
   }
 

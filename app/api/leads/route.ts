@@ -98,9 +98,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data ?? [])
   }
 
+  // Los corredores/brokers (canal_origen='Corredor') se excluyen del
+  // pipeline de compradores — no son leads de venta, se identifican y
+  // atienden aparte (ver intencion.ts y la rama CORREDOR en webhook/route.ts).
   const { data } = await db
     .from('leads')
     .select('id, nombre, telefono, estado, interes, actualizado_en, info_general_enviada, fecha_cita, drip_count, creado_en, bot_activo')
+    .neq('canal_origen', 'Corredor')
     .order('actualizado_en', { ascending: false })
   return NextResponse.json(data ?? [])
 }
