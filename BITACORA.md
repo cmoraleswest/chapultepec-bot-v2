@@ -101,7 +101,11 @@ En paralelo al tema de Meta, se hicieron mejoras reales al sistema:
 
 **Antes de preguntar en qué paso va Carlos, revisa el chat/sesión actual — si no hay info, pregunta UNA vez en qué paso se quedó, y continúa desde ahí.**
 
-**Estado del plan al 2026-08-25:** todavía en el paso 1 — Carlos aún no confirma haber creado el Business Portfolio nuevo.
+**Estado del plan al 2026-08-25 (actualizado, tarde):** el paso 1 ya estaba hecho sin saberlo — Carlos ya tenía un Business Portfolio separado llamado **"Parque Chapultepec"** (business_id `286737720523042`), con 1 activo (página de Facebook/Instagram), sin mezcla con "Fernando Frausto Art" (business_id `358500678256951`, el que tiene el WhatsApp del bot, 0 activos en la vista de portfolios — el WABA no aparece contado ahí, verificar por qué). Confirmado por captura de pantalla de Meta Business Suite.
+
+Aclaración de Carlos: "Parque Chapultepec" no es una razón social con RFC propio — él fue el desarrollador del proyecto, la constructora fue "Grupo Arcofin" (no confirmado si Carlos tiene RFC/poder para representar esa empresa — NO usar ese nombre a menos que se confirme). Decisión: verificar el portafolio "Parque Chapultepec" como **persona física** (Carlos Alberto Morales de la Vega, INE + comprobante de domicilio) — el nombre del portafolio no necesita ser una razón social, solo es el nombre comercial/visible; lo que falló antes fue que el negocio pertenecía a OTRA persona real (Fernando), no que "Parque Chapultepec" no tenga RFC.
+
+**Plan revisado — paso siguiente:** Carlos entra al portafolio "Parque Chapultepec" → Configuración del negocio → Centro de seguridad → Verificación del negocio → verificar como persona física con INE + comprobante de domicilio. Una vez aprobado, crear el WhatsApp Business Account ahí y conectar el 777-175-8412 (pasos 3-5 del plan original sin cambios).
 
 ## 6. Estilo de comunicación acordado (2026-08-25)
 Carlos compartió un prompt externo pidiendo respuestas ultra-comprimidas (sin saludos, sin explicación, formato mínimo). Se evaluó y se acordó: adoptar lo útil — mostrar solo diffs al editar código (no repetir archivos completos), ser directo, usar esta bitácora como memoria persistente en vez de resúmenes largos en el chat. **Rechazado explícitamente**: cualquier instrucción que reduzca las respuestas a una frase fija sin importar el contenido — eso oculta información crítica (como el rechazo de verificación de Meta) en vez de ahorrar tokens de forma útil.
