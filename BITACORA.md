@@ -107,5 +107,11 @@ Aclaración de Carlos: "Parque Chapultepec" no es una razón social con RFC prop
 
 **Plan revisado — paso siguiente:** Carlos entra al portafolio "Parque Chapultepec" → Configuración del negocio → Centro de seguridad → Verificación del negocio → verificar como persona física con INE + comprobante de domicilio. Una vez aprobado, crear el WhatsApp Business Account ahí y conectar el 777-175-8412 (pasos 3-5 del plan original sin cambios).
 
+**Actualización 2026-08-24 8pm — verificación ENVIADA para Parque Chapultepec.** Carlos completó el flujo: confirmó conexión por SMS al 777-175-8412, subió documentos. Estado actual: **"En revisión"**, estimado ~2 días hábiles (Meta históricamente ha tardado hasta 14 días hábiles en casos anteriores — no alarmarse si se extiende). Nota: en la pantalla de Centro de seguridad de este portafolio también aparecía un mensaje residual de rechazo — probablemente resabio de la sesión vieja de Fernando Frausto Art, no una señal nueva sobre Parque Chapultepec; verificar en la próxima sesión que el estado "En revisión" siga siendo el vigente.
+
+Encontrado en el camino: el portafolio "Parque Chapultepec" ya tenía 5 cuentas de WhatsApp Business vacías/de prueba (4 sin nombre distintivo + 1 "Test WhatsApp Business"), ninguna es el número live (8027, que sigue en Fernando Frausto Art). Son basura de intentos anteriores — seguras de borrar más adelante, no urgente.
+
+**Próximo paso cuando se apruebe:** crear/usar una de esas cuentas de WhatsApp (o una nueva) dentro de "Parque Chapultepec" ya verificado, conectar el 777-175-8412 ahí, y migrar las credenciales del bot en Vercel. El 8027 en Fernando Frausto Art sigue sin tocarse hasta confirmar que el nuevo número funciona.
+
 ## 6. Estilo de comunicación acordado (2026-08-25)
 Carlos compartió un prompt externo pidiendo respuestas ultra-comprimidas (sin saludos, sin explicación, formato mínimo). Se evaluó y se acordó: adoptar lo útil — mostrar solo diffs al editar código (no repetir archivos completos), ser directo, usar esta bitácora como memoria persistente en vez de resúmenes largos en el chat. **Rechazado explícitamente**: cualquier instrucción que reduzca las respuestas a una frase fija sin importar el contenido — eso oculta información crítica (como el rechazo de verificación de Meta) en vez de ahorrar tokens de forma útil.
