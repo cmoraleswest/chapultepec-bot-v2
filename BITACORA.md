@@ -113,5 +113,9 @@ Encontrado en el camino: el portafolio "Parque Chapultepec" ya tenía 5 cuentas 
 
 **Próximo paso cuando se apruebe:** crear/usar una de esas cuentas de WhatsApp (o una nueva) dentro de "Parque Chapultepec" ya verificado, conectar el 777-175-8412 ahí, y migrar las credenciales del bot en Vercel. El 8027 en Fernando Frausto Art sigue sin tocarse hasta confirmar que el nuevo número funciona.
 
+**Corrección + dato para la migración (2026-08-24 9pm):** Carlos SÍ tiene control total sobre "Fernando Frausto Art" — la pantalla de Configuración del negocio dice explícito "Carlos MV puede eliminar el portfolio comercial cuando quiera". No es un tema de permisos de otra persona; el "no me deja borrarlo" de antes fue probablemente porque Meta bloquea el borrado mientras el portfolio tenga activos asignados (no por falta de dueño).
+
+Inventario de "Fernando Frausto Art": **5 cuentas de WhatsApp** + **1 app: "Parque Chapultepec Bot"** (esta es la app de Meta for Developers que tiene el token/webhook del bot conectado — ver `WHATSAPP_TOKEN` en Vercel). Cuando llegue el paso de migración, esta app necesita moverse o recrearse dentro del portafolio "Parque Chapultepec" — como Carlos controla ambos negocios, Meta permite compartir/transferir activos entre ellos sin fricción. Anotar esto para la Fase 4 del plan (migrar credenciales en Vercel).
+
 ## 6. Estilo de comunicación acordado (2026-08-25)
 Carlos compartió un prompt externo pidiendo respuestas ultra-comprimidas (sin saludos, sin explicación, formato mínimo). Se evaluó y se acordó: adoptar lo útil — mostrar solo diffs al editar código (no repetir archivos completos), ser directo, usar esta bitácora como memoria persistente en vez de resúmenes largos en el chat. **Rechazado explícitamente**: cualquier instrucción que reduzca las respuestas a una frase fija sin importar el contenido — eso oculta información crítica (como el rechazo de verificación de Meta) en vez de ahorrar tokens de forma útil.
