@@ -19,6 +19,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const db = getSupabase()
   const vista = req.nextUrl.searchParams.get('vista')
 
+  if (vista === 'corredores') {
+    const { data } = await db
+      .from('leads')
+      .select('id, nombre, telefono, actualizado_en, creado_en')
+      .eq('canal_origen', 'Corredor')
+      .order('actualizado_en', { ascending: false })
+    return NextResponse.json(data ?? [])
+  }
+
   if (vista === 'urgencias') {
     const hace24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
     const { data } = await db
@@ -408,4 +417,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   return NextResponse.json({ ok: true, mensaje: `WhatsApp enviado a +${telWA}` })
+}
+
+// Borrar un lead — para prospectos que ya no tiene caso seguir (ya compraron
+// en otro lado, número equivocado, etc.). Borra en cascada sus interacciones
+// (ON DELETE CASCADE); llamadas_rescatadas y crm_log se limpian aparte porque
+// esas dos tablas no tenían cascada configurada.
+export async function DELETE(req: NextRequest): Promise<NextResponse> {
+  if (!auth(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const id = req.nextUrl.searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'id requerido' }, { status: 400 })
+
+  const db = getSupabase()
+  await db.from('llamadas_rescatadas').delete().eq('lead_id', id)
+  await db.from('crm_log').delete().eq('lead_id', id)
+  const { error } = await db.from('leads').delete().eq('id', id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
 }

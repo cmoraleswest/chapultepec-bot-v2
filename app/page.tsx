@@ -12,6 +12,7 @@ type Publicacion = { id: string; red: string; tipo: string; caption: string; ima
 type Salud = { publicacionesHoy: number; ultimaPublicacion: string | null; mensajesHoy: number; ultimoMensaje: string | null }
 type SoloLlamada = { id: string; nombre: string | null; telefono: string; estado: string; motivo: string; que_hacer: string; fallo_en: string }
 type Bandeja = Lead & { ultimo_entrante: string | null; ultimo_mensaje: string | null; ultimo_tipo: string | null; ultimo_mensaje_en: string | null }
+type Corredor = { id: string; nombre: string | null; telefono: string; actualizado_en: string; creado_en: string }
 
 // Las 4 plantillas de venta aprobadas que se pueden mandar a mano cuando la
 // ventana de 24 h ya cerró. Deben coincidir con PLANTILLAS_CRM en whatsapp.ts.
@@ -112,12 +113,13 @@ export default function CRM() {
   const [bandeja, setBandeja] = useState<Bandeja[]>([])
   const [soloLlamada, setSoloLlamada] = useState<SoloLlamada[]>([])
   const [urgencias, setUrgencias] = useState<Lead[]>([])
+  const [corredores, setCorredores] = useState<Corredor[]>([])
   const [llamadas, setLlamadas] = useState<Llamada[]>([])
   const [pubs, setPubs] = useState<Publicacion[]>([])
   const [salud, setSalud] = useState<Salud | null>(null)
   const [sel, setSel] = useState<Lead | null>(null)
   const [hist, setHist] = useState<Interaccion[]>([])
-  const [vista, setVista] = useState<'bandeja' | 'solo_llamada' | 'pipeline' | 'urgencias' | 'llamadas' | 'publicaciones'>('bandeja')
+  const [vista, setVista] = useState<'bandeja' | 'solo_llamada' | 'pipeline' | 'urgencias' | 'llamadas' | 'publicaciones' | 'corredores'>('bandeja')
   const [cargando, setCargando] = useState(false)
   const [nuevoTel, setNuevoTel] = useState('')
   const [nuevoNombre, setNuevoNombre] = useState('')
@@ -136,7 +138,7 @@ export default function CRM() {
   const cargar = useCallback(async () => {
     setCargando(true)
     try {
-      const [r1, r2, r3, r4, r5, r6, r7] = await Promise.all([
+      const [r1, r2, r3, r4, r5, r6, r7, r8] = await Promise.all([
         fetch(API('vista=pipeline')).then(r => r.json()),
         fetch(API('vista=urgencias')).then(r => r.json()),
         fetch(API('vista=llamadas')).then(r => r.json()),
@@ -144,6 +146,7 @@ export default function CRM() {
         fetch(API('vista=salud')).then(r => r.json()),
         fetch(API('vista=bandeja')).then(r => r.json()),
         fetch(API('vista=solo_llamada')).then(r => r.json()),
+        fetch(API('vista=corredores')).then(r => r.json()),
       ])
       const leadsData: Lead[] = Array.isArray(r1) ? r1 : []
       setLeads(leadsData)
@@ -152,6 +155,7 @@ export default function CRM() {
       setPubs(Array.isArray(r4) ? r4 : [])
       if (r5 && typeof r5.mensajesHoy === 'number') setSalud(r5)
       setBandeja(Array.isArray(r6) ? r6 : [])
+      setCorredores(Array.isArray(r8) ? r8 : [])
       setSoloLlamada(Array.isArray(r7) ? r7 : [])
 
       // Detectar leads con actividad en los últimos 30 segundos
@@ -198,6 +202,15 @@ export default function CRM() {
 
   const patch = async (id: string, tabla: string, updates: Record<string, unknown>) => {
     await fetch(`/api/leads?t=${T}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, tabla, ...updates }) })
+    cargar()
+  }
+
+  // Borrar un prospecto que ya no tiene caso seguir (compró en otro lado,
+  // número equivocado, etc.) — pide confirmación porque no se puede deshacer.
+  const borrar = async (id: string, nombre: string) => {
+    if (!confirm(`¿Borrar a ${nombre} de forma permanente? Esto no se puede deshacer.`)) return
+    await fetch(`/api/leads?t=${T}&id=${id}`, { method: 'DELETE' })
+    if (sel?.id === id) setSel(null)
     cargar()
   }
 
@@ -320,6 +333,7 @@ export default function CRM() {
           <button onClick={() => setVista('urgencias')} style={S.btn(vista === 'urgencias', '#f59e0b')}>Urgentes ({urgencias.length})</button>
           <button onClick={() => setVista('llamadas')} style={S.btn(vista === 'llamadas', '#8b5cf6')}>Llamadas ({llamadas.length}){llamPend > 0 && <span style={{ marginLeft: 4, background: '#ef4444', borderRadius: 8, padding: '1px 5px', fontSize: 10 }}>{llamPend}</span>}</button>
           <button onClick={() => setVista('publicaciones')} style={S.btn(vista === 'publicaciones', '#E1306C')}>Publicaciones ({pubs.length})</button>
+          <button onClick={() => setVista('corredores')} style={S.btn(vista === 'corredores', '#0d9488')}>🤝 Corredores ({corredores.length})</button>
           <button onClick={cargar} style={{ ...S.btn(false), border: '1px solid #333' }}>{cargando ? '...' : '↻'}</button>
         </div>
       </div>
@@ -428,6 +442,28 @@ export default function CRM() {
         </div>
       )}
 
+      {/* ═══ CORREDORES — no son compradores, se atienden aparte ═══ */}
+      {vista === 'corredores' && (
+        <div style={S.card}>
+          <h3 style={{ margin: '0 0 6px', fontSize: 20, color: '#0d9488' }}>Corredores y aliados</h3>
+          <p style={{ margin: '0 0 14px', color: '#64748b', fontSize: 15 }}>
+            Asesores/inmobiliarias que ofrecieron representar la propiedad. Ya se les contestó la comisión compartida (50% del 5%) automáticamente — no están en el pipeline de compradores.
+          </p>
+          {corredores.length === 0 ? <p style={{ color: '#64748b', fontSize: 13 }}>Ninguno todavía.</p> : corredores.map(x => (
+            <div key={x.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '14px 12px', borderRadius: 12, marginBottom: 8, background: '#f0fdfa', border: '1px solid #99f6e4' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 19, fontWeight: 700, color: '#0f172a' }}>{x.nombre || fmtTel(x.telefono)}</div>
+                <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Contactó hace {hace(x.actualizado_en)}</div>
+              </div>
+              <a href={`https://wa.me/52${x.telefono.replace(/\D/g,'').replace(/^52/,'')}`} target="_blank" rel="noreferrer"
+                style={{ padding: '10px 16px', borderRadius: 10, background: '#25D366', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 15 }}>💬 WhatsApp</a>
+              <button onClick={() => borrar(x.id, x.nombre || fmtTel(x.telefono))}
+                style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#ef444422', color: '#ef4444', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>🗑️ Borrar</button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ═══ PIPELINE ═══ */}
       {vista === 'pipeline' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10, overflowX: 'auto' }}>
@@ -462,6 +498,8 @@ export default function CRM() {
                       </button>
                       <a href={`https://wa.me/52${lead.telefono.replace(/\D/g,'').replace(/^52/,'')}`} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
                         style={{ fontSize: 10, padding: '2px 7px', borderRadius: 4, background: '#25D366', color: '#fff', textDecoration: 'none' }}>WA</a>
+                      <button onClick={e => { e.stopPropagation(); borrar(lead.id, lead.nombre || fmtTel(lead.telefono)) }}
+                        style={{ fontSize: 10, padding: '2px 7px', borderRadius: 4, border: 'none', fontWeight: 700, cursor: 'pointer', background: '#ef444422', color: '#ef4444' }}>🗑️ Borrar</button>
                       {COLS.filter(c => c !== col && c !== 'No Contactar').map(c => (
                         <button key={c} onClick={e => { e.stopPropagation(); patch(lead.id, 'leads', { estado: c }) }}
                           style={{ fontSize: 9, padding: '2px 5px', borderRadius: 4, border: `1px solid ${COL_C[c]}55`, background: 'transparent', color: COL_C[c], cursor: 'pointer' }}>
