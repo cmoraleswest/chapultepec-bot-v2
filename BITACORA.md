@@ -4,6 +4,8 @@ Historia completa del proyecto, para que ninguna sesión (de chat o de trabajo) 
 
 Última actualización: 2026-08-26.
 
+**Nota de nombre:** el portafolio de Meta al que este documento se refiere como "Fernando Frausto Art" se RENOMBRÓ el 26-ago-2026 a **"Carlos Morales - Parque Chapultepec WhatsApp"** (mismo business_id `358500678256951`, solo cambió el nombre visible — no se movió ningún activo). El nombre viejo se deja tal cual en el resto de este archivo porque así se llamaba en el momento de cada evento histórico; en Meta ya no aparece con ese nombre.
+
 ---
 
 ## 1. Qué es el proyecto
