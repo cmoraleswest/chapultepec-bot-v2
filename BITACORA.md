@@ -137,5 +137,12 @@ En paralelo, sin saber del plan de la sección 5 (esta sesión no había leído 
 
 **No repetir el error de la sección 5** (ya tachada abajo, se deja como registro histórico de qué se intentó y por qué no funcionó) — la próxima sesión debe leer esta Fase 8, no la sección 5, para saber el estado real.
 
-## 6. Estilo de comunicación acordado (2026-08-25)
+## 6. Pendiente — freno anti-reintentos (detectado 26-ago-2026)
+Carlos compartió un video de TikTok sobre cuentas de WhatsApp restringidas por Meta al detectar "actividad que parece spam, mensajes automáticos o masivos". Esa pantalla específica es de la app de consumidor (no aplica igual a la API oficial que usa este bot), pero el mecanismo de fondo es el mismo que ya se había visto en producción: el error 131049 ("healthy ecosystem engagement") usa literalmente ese lenguaje.
+
+Se encontró en la auditoría del mismo día que el sistema reintentó el mismo mensaje 147 veces en 2 meses al número de pruebas de Carlos, y varias veces en un solo día a leads reales — ese patrón de reintento es justo lo que Meta interpreta como comportamiento automatizado sospechoso.
+
+**Pendiente:** revisar `lib/drip.ts` y el manejador de `statuses` en `app/api/webhook/route.ts` para agregar un freno que evite reintentar el mismo mensaje al mismo número más de 1-2 veces por día. No se hizo todavía — esperar a que se resuelva la verificación de negocio (~28-ago) antes de tocar esta lógica, para no mezclar dos cambios a la vez sobre el mismo sistema.
+
+## 7. Estilo de comunicación acordado (2026-08-25)
 Carlos compartió un prompt externo pidiendo respuestas ultra-comprimidas (sin saludos, sin explicación, formato mínimo). Se evaluó y se acordó: adoptar lo útil — mostrar solo diffs al editar código (no repetir archivos completos), ser directo, usar esta bitácora como memoria persistente en vez de resúmenes largos en el chat. **Rechazado explícitamente**: cualquier instrucción que reduzca las respuestas a una frase fija sin importar el contenido — eso oculta información crítica (como el rechazo de verificación de Meta) en vez de ahorrar tokens de forma útil.
