@@ -68,6 +68,15 @@ Las publicaciones a Instagram/TikTok/Facebook se detuvieron por completo desde e
 - Confirmado con datos reales que el motor conversacional (Claude + Cloud API) funciona bien dentro de la ventana de 24h — el problema no es "no hay comunicación", es el reenganche a leads fríos y el uso del selector de plantillas del CRM cuando la ventana está cerrada (ya existe, Carlos debe usarlo en vez del cuadro de texto libre cuando el semáforo está en 🔴).
 - **Pendiente sin terminar esa sesión:** 5 piezas de brochure nuevas (diseños HTML → PNG) que Carlos ya entregó, revisadas y corregidas (quitado "alberca privada"/"elevador exclusivo" — la alberca es amenidad compartida del condominio, no privada del PH), pero NUNCA se subieron a `chapultepec-fotos/public/galeria/` ni se agregaron a `PIEZAS` en `lib/buffer.ts`. Retomar cuando Carlos las tenga a la mano otra vez.
 
+## ⚠️ PENDIENTE URGENTE PARA CARLOS: rediseñar ficha-departamento (26-ago-2026)
+Se descubrió que `chapultepec-fotos/public/fichas/ficha-departamento.pdf` (y su .jpg) sigue con el precio viejo **$2,800,000** — el precio real es **$3,000,000** desde hace tiempo (el texto del bot ya lo tenía bien, solo esta pieza diseñada se quedó atrás). Esta ficha se manda de verdad a leads reales cuando piden info del departamento.
+
+**Ya se desactivó el envío de esta ficha específica** en `app/api/webhook/route.ts` (busca el comentario sobre `ficha-departamento.pdf`) para no seguir cotizando de menos — el lead sigue recibiendo el texto con el precio correcto, solo no recibe el PDF adjunto. La ficha del Penthouse SÍ está correcta y se sigue mandando normal.
+
+**Lo que Carlos necesita hacer:** regenerar `ficha-departamento.pdf` (y el `.jpg` equivalente) con $3,000,000 y subir los archivos nuevos a `chapultepec-fotos/public/fichas/` con el mismo nombre. En cuanto estén, avisar para reactivar el envío en el código (quitar el `if (cual === 'Departamento') continue`).
+
+También se sacó `comparativa.jpg` de la rotación de redes (`lib/buffer.ts`) por el mismo motivo — mostraba $2,800,000 para el departamento. Se reemplazó por una pieza de especificaciones del Penthouse que sí está vigente.
+
 ## Reglas para no revolver
 - Este archivo, no la memoria de una sesión de chat, es la verdad. Si algo aquí contradice lo que dice una sesión vieja, gana este archivo (y si este archivo está desactualizado, se corrige aquí, no se discute en el chat y se olvida).
 - Nunca mezclar con `~/chapultepec-admin` (condominio) ni con `~/chapultepec-bot` (V1 viejo, detenido, no tocar) ni con Poza Rica.
