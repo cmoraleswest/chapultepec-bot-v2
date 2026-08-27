@@ -349,10 +349,6 @@ async function processIntelligentAgent(from: string, lead: Lead, texto: string, 
       ? [lead.interes]
       : (['Penthouse', 'Departamento'] as const)
     for (const cual of cuales) {
-      // ficha-departamento.pdf quedó desactualizada (sigue en $2,800,000, el
-      // precio real subió a $3,000,000) — apagada hasta que se regenere con
-      // el precio correcto, para no cotizar de menos a un lead real.
-      if (cual === 'Departamento') continue
       const f = FICHAS_PDF[cual as 'Penthouse' | 'Departamento']
       const okDoc = await enviarDocumento(from, f.url, f.archivo, `Ficha técnica — ${cual}`, phoneNumberId)
       await guardarInteraccion(lead.id, 'saliente', okDoc ? `[FICHA PDF ${cual}]` : `[FALLÓ] [FICHA PDF ${cual}]`)
