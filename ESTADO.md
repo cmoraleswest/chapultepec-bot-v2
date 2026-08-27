@@ -22,26 +22,19 @@ Objetivo del dueño: automatización al 100% del contacto con leads, para no per
 - 777 492 1176 — número personal de pruebas de Carlos, NUNCA es un lead real
 - 527771568706 (Zamir) — BLOQUEADO permanente, no contactar
 
-## Bloqueador crítico activo — actualizado 2026-08-26, ver contradicción sin resolver más abajo
-**Estado real ahora mismo (26-ago, confirmado por Meta):** la solicitud está **"En revisión"**, no rechazada — Carlos corrigió el nombre legal (tenía un error de tipeo, "Parque Chapulteepc") dentro de este mismo Business Manager y Meta la aceptó para revisión, ~2 días hábiles, resolución estimada 28-ago-2026. Lo de abajo es el diagnóstico y plan que dejó la sesión del 25-ago — puede seguir siendo válido si esta revisión también se rechaza, pero por ahora el camino que se está siguiendo es distinto (arreglar esta identidad, no crear una nueva). Ver sección "DOS SESIONES EN PARALELO" más abajo antes de actuar.
+## Bloqueador crítico activo — RECONCILIADO Y CONFIRMADO 2026-08-26 (ver BITÁCORA.md Fase 8 para la historia completa)
+Hubo dos intentos en paralelo por dos sesiones distintas sin continuidad entre ellas. Ya se verificó en vivo cuál ganó:
 
-### Diagnóstico y plan de la sesión del 25-ago-2026 (sin confirmar si sigue vigente)
-La verificación de negocio del Business ID `358500678256951` fue **RECHAZADA** ("No se pudo verificar"), no solo demorada. Causa raíz confirmada con Carlos: ese Business Manager está registrado bajo el nombre **"Fernando Frausto Art"**, que NO es el negocio de Carlos — es un Business Portfolio que Carlos creó con su propia cuenta de Facebook para ayudar a un amigo, y el WhatsApp Business de Parque Chapultepec quedó construido adentro por error de arquitectura, no de un amigo. Verificar documentos de Carlos (Parque Chapultepec / bienes raíces) contra un negocio llamado "Fernando Frausto Art" no puede aprobar — el nombre no coincide con ningún documento real. **No tiene caso reintentar la verificación bajo esta identidad, nunca va a aprobar.**
+- **Portafolio "Parque Chapultepec" (`286737720523042`)** — el plan del 25-ago de crear un negocio nuevo y separado. **FRACASÓ: verificación RECHAZADA** ("No se pudo verificar", sin razón específica). Solo sirve hoy como dueño de la Página de Facebook/Instagram que usa Buffer. Sus 5 cuentas de WhatsApp están vacías. No seguir insistiendo aquí sin ayuda directa de soporte de Meta.
+- **Portafolio "Fernando Frausto Art" (`358500678256951`)** — el original, el que tiene el WhatsApp real. Se corrigió el campo "Nombre legal del negocio" (tenía un error de tipeo, "Parque Chapulteepc") a "Carlos Alberto Morales De La Vega" exacto como el RFC, se resubieron documentos, y Meta lo aceptó: **estado actual "En revisión"**, confirmado por el chat de soporte de Meta, resolución estimada 28-ago-2026.
 
-Sin resolver esto: el 175 no se puede dar de alta (límite de 1 número por negocio sin verificar, ya ocupado por el 8027), el límite de mensajes del 8027 sigue topado, y las 4 plantillas de seguimiento sin aprobar (`info_ambas_propiedades`, `seguimiento_24h`, `seguimiento_48h`, `cierre_7dias`) — de hecho ya se confirmó en vivo (2026-08-25) que varias plantillas de seguimiento están siendo rechazadas por Meta con error 131049 "healthy ecosystem engagement", consistente con la cuenta LIMITED.
+**Dato que cambia el plan de fondo:** "Fernando Frausto Art" ya tiene, HOY, funcionando con calidad Alta, **los dos números conectados**: el 8027 (WABA `1923471098361486`, el que usa el bot) y el **175-8412 (WABA `1964573394173039`, nunca usado por el código)**. La vieja idea de "el 175 está baneado / no se puede conectar sin verificar" era falsa — ya está conectado, solo que nadie lo usó. Si la revisión actual se aprueba, el límite de mensajes se levanta para AMBOS números a la vez, sin necesitar ninguna migración de portafolio.
 
-### Plan acordado con Carlos (2026-08-25) — seguir este orden, no saltarse pasos
-No tocar ni salir de "Fernando Frausto Art" todavía — el 8027 sigue viviendo ahí y funciona para conversaciones activas dentro de la ventana de 24h (confirmado con datos reales). Romperlo antes de tener el reemplazo listo sería un retroceso.
-
-1. Carlos crea un Business Portfolio **nuevo y separado**, con su nombre/negocio real, SIN tocar ni mezclar con el de su amigo.
-2. Verificación de negocio en el portfolio nuevo, con documentos que coincidan exacto con el nombre registrado (persona física: INE + comprobante de domicilio; persona moral: acta constitutiva + RFC + comprobante de domicilio).
-3. Una vez aprobado: crear un WhatsApp Business Account nuevo adentro de ese portfolio, conectar ahí el **777-175-8412** (el número público que siempre se quiso usar como definitivo).
-4. Migrar credenciales del bot en Vercel al WABA/número nuevo — correr los dos en paralelo hasta confirmar que el nuevo funciona igual de bien.
-5. Solo hasta entonces, Carlos se sale de "Fernando Frausto Art" (Configuración del negocio → Personas → Salir — no se puede borrar, no es el dueño legal de ese nombre de negocio aunque sea su cuenta).
-
-Se decidió NO investigar si "Fernando Frausto Art" tiene algo mezclado del amigo — crear uno nuevo desde cero es más rápido y de riesgo cero que investigarlo, dado que ya se perdieron meses en este bloqueador.
-
-Próxima sesión: preguntar a Carlos en qué paso del plan de arriba se quedó, ANTES de proponer nada nuevo sobre Meta/verificación — no repetir el diagnóstico, ya está hecho.
+**Plan vigente:**
+1. Esperar resolución (~28-ago). Verificar con `health_status` de la Graph API sobre el phone_number_id del 8027 — si `BUSINESS` deja de mostrar error 141010, ya se aprobó.
+2. Si se aprueba: decidir con Carlos si migrar el bot para usar el 175 (su número público real) en vez del 8027 invisible — cambio de código (env vars + re-suscribir webhook a la WABA `1964573394173039`), no de activos de Meta, seguro de hacer con cuidado de no cortar el 8027 hasta confirmar que el 175 funciona igual en producción.
+3. Si se rechaza otra vez: escalar con soporte humano de Meta, ya van dos rechazos con nombre de persona física correcto — no repetir el mismo formulario una tercera vez sin ayuda.
+4. NO tocar el portafolio "Parque Chapultepec" (`286737720523042`) para temas de WhatsApp — quedó descartado para eso, solo úsalo para la Página de redes.
 
 ## Teléfono Android (captura de llamadas perdidas al 175)
 El equipo comprado para esto salió DEFECTUOSO — no recibía ni hacía llamadas de forma confiable. MacroDroid ya estaba configurado y listo (trigger: llamada perdida → POST a `/api/leads`), pero no tiene hardware confiable donde correr. Pendiente: Carlos decide si lo regresa/cambia o compra otro equipo.
@@ -57,14 +50,6 @@ A partir de hoy: `https://github.com/cmoraleswest/chapultepec-bot-v2` (privado) 
 `lib/buffer.ts` ya se amplió: `PIEZAS` pasó de 5 a 11 temas (las 5 piezas diseñadas de `refresh/` + 6 nuevas basadas en foto real de `galeria/`, con ángulo de inversión/plusvalía/rendimiento). El ciclo diario ahora tarda 11 días en repetirse en vez de 5. Deployado a producción y verificado que el dashboard y el webhook siguen respondiendo igual — NO se forzó ningún post de prueba real a Instagram/TikTok/Facebook, la próxima publicación automática (cron diario) ya usa la rotación nueva.
 
 Pendiente si Carlos quiere más: agregar más piezas de foto real al array `PIEZAS` en `lib/buffer.ts` (mismo patrón: slug, tema con el ángulo de mensaje, propiedad, `fuente: 'foto'`, nombre exacto del archivo en `galeria/`) — quedan ~80 fotos/videos sin usar todavía en la galería.
-
-## ⚠️ DOS SESIONES EN PARALELO EL MISMO DÍA — CONTRADICCIÓN SIN RESOLVER (26-ago-2026)
-Este archivo tuvo un conflicto de git real: una sesión distinta a esta trabajó el 25-ago sobre el mismo repo (mismo remoto, sin que esta sesión lo supiera hasta intentar hacer `git push` y ser rechazada). Sus conclusiones sobre el bloqueador de Meta CONTRADICEN lo que esta sesión hizo hoy con Carlos en vivo. No decidir por Carlos cuál va — preguntarle directamente antes de tocar nada más de Meta/WhatsApp:
-
-- **Sesión del 25-ago concluyó:** la verificación fue RECHAZADA (no solo demorada) y que "Fernando Frausto Art" NUNCA puede aprobar porque es un portfolio de un amigo de Carlos, no su negocio — acordaron con Carlos crear un Business Portfolio nuevo y separado, verificar ahí, y migrar el 175 a un WABA nuevo, sin tocar el 8027 actual.
-- **Esta sesión (26-ago), en vivo con Carlos:** se corrigió el nombre legal DENTRO de "Fernando Frausto Art" (seguía mal escrito, "Parque Chapulteepc"), se reenviaron los documentos, y Meta lo aceptó — la solicitud pasó a **"En revisión"**, confirmado por el chat de soporte de Meta, sin mencionar que el portfolio sea irrecuperable. Carlos no mencionó en ningún momento el plan de crear un portfolio nuevo.
-
-No está claro si Carlos decidió abandonar el plan del 25-ago, si no sabía que existía (sesión distinta, sin continuidad — ver [[feedback_sesiones_fragmentadas]]), o si esta sesión resolvió el problema real sin necesidad de un portfolio nuevo. **Antes de avanzar más: preguntarle a Carlos cuál de los dos caminos quiere seguir**, y si la revisión de hoy se rechaza otra vez, sí retomar el plan del portfolio nuevo del 25-ago en vez de seguir insistiendo en el mismo lugar.
 
 ## Publicaciones automáticas paradas y reparadas (26-ago-2026)
 Las publicaciones a Instagram/TikTok/Facebook se detuvieron por completo desde el 16-ago-2026 (10 días sin publicar nada, verificado en la tabla `publicaciones` de Supabase). Causa raíz encontrada navegando a `developers.buffer.com` → `publish.buffer.com/settings/api`: la clave API de Buffer (`BUFFER_API_KEY`) se creó el 18-jul-2026 con vencimiento fijo a 30 días — **caducó el 17-ago-2026**, un día después de la última publicación exitosa. El sistema fallaba en silencio (no tumbaba el cron, solo dejaba de publicar) porque `publicarDiario()` ya maneja los errores de Buffer sin lanzar excepción.

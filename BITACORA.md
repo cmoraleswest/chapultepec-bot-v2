@@ -2,7 +2,7 @@
 
 Historia completa del proyecto, para que ninguna sesión (de chat o de trabajo) tenga que volver a empezar de cero. `ESTADO.md` tiene el estado actual resumido; este archivo tiene el CÓMO llegamos aquí, para entender el porqué de cada decisión sin repetir errores ya resueltos.
 
-Última actualización: 2026-08-25.
+Última actualización: 2026-08-26.
 
 ---
 
@@ -91,7 +91,9 @@ En paralelo al tema de Meta, se hicieron mejoras reales al sistema:
 
 ---
 
-## 5. Plan de trabajo vigente (Meta) — no empezar de cero, seguir aquí
+## 5. Plan de Meta del 25-ago — SUPERADO, ver Fase 8 arriba para el plan vigente
+
+**Este plan falló (el portafolio nuevo fue rechazado) — se deja completo abajo solo como registro histórico de qué se intentó. No seguir estos pasos, leer la Fase 8 en su lugar.**
 
 1. Carlos crea un Business Portfolio **nuevo y separado** en Meta, con su nombre/negocio real — sin tocar ni mezclar con "Fernando Frausto Art".
 2. Verificación de negocio en el portfolio nuevo, con documentos que coincidan exacto con el nombre registrado.
@@ -116,6 +118,22 @@ Encontrado en el camino: el portafolio "Parque Chapultepec" ya tenía 5 cuentas 
 **Corrección + dato para la migración (2026-08-24 9pm):** Carlos SÍ tiene control total sobre "Fernando Frausto Art" — la pantalla de Configuración del negocio dice explícito "Carlos MV puede eliminar el portfolio comercial cuando quiera". No es un tema de permisos de otra persona; el "no me deja borrarlo" de antes fue probablemente porque Meta bloquea el borrado mientras el portfolio tenga activos asignados (no por falta de dueño).
 
 Inventario de "Fernando Frausto Art": **5 cuentas de WhatsApp** + **1 app: "Parque Chapultepec Bot"** (esta es la app de Meta for Developers que tiene el token/webhook del bot conectado — ver `WHATSAPP_TOKEN` en Vercel). Cuando llegue el paso de migración, esta app necesita moverse o recrearse dentro del portafolio "Parque Chapultepec" — como Carlos controla ambos negocios, Meta permite compartir/transferir activos entre ellos sin fricción. Anotar esto para la Fase 4 del plan (migrar credenciales en Vercel).
+
+### Fase 8 — El plan de portafolio nuevo FRACASÓ, se reparó el original en su lugar (26 de agosto)
+
+**El plan de la sección 5 (crear un portafolio nuevo "Parque Chapultepec" y migrar el 175 ahí) YA NO ES EL PLAN VIGENTE — falló.** Verificado en vivo el 26-ago: el portafolio "Parque Chapultepec" (`286737720523042`) tiene su verificación de negocio en estado **"Rechazada"** ("No se pudo verificar", sin razón específica mostrada por Meta). Ese portafolio solo sirve hoy para la Página de Facebook/Instagram que usa Buffer para publicar — no tiene ningún WhatsApp real conectado (sus 5 cuentas de WhatsApp están vacías, confirmado).
+
+En paralelo, sin saber del plan de la sección 5 (esta sesión no había leído la bitácora todavía), se corrigió el problema real dentro de **"Fernando Frausto Art" (`358500678256951`)** — el campo "Nombre legal del negocio" tenía un error de tipeo ("Parque Chapulteepc" en vez del nombre real de Carlos), se corrigió a "Carlos Alberto Morales De La Vega" exacto como el RFC, se volvieron a subir documentos, y Meta aceptó la solicitud: **estado actual "En revisión"**, confirmado también por el chat de soporte de Meta, resolución estimada ~28-ago-2026.
+
+**Dato clave que cambia todo el plan:** "Fernando Frausto Art" YA TIENE, hoy, funcionando, con calidad Alta, **ambos números conectados** — el 8027 (WABA `1923471098361486`, el que usa el bot) Y el 175-8412 (WABA `1964573394173039`, nunca usado por el código). La afirmación histórica de que "el 175 está baneado" o que "no se puede conectar mientras el negocio no esté verificado" era falsa — alguien ya lo conectó exitosamente en algún momento, simplemente nadie lo usó en el bot.
+
+**PLAN VIGENTE ahora (reemplaza la sección 5 por completo):**
+1. Esperar la resolución de la revisión de "Fernando Frausto Art" (~28-ago). Si se aprueba: el límite de mensajes se levanta automáticamente para TODO el portafolio, incluyendo ambos números, sin necesitar ninguna migración.
+2. Si se aprueba, decidir con Carlos si migrar el bot para que use el 175 (el número real de su publicidad) en vez del 8027 invisible — es un cambio de código (env vars + re-suscribir webhook a la WABA `1964573394173039`), no de activos de Meta, así que es seguro hacerlo cuando se decida, con cuidado de no perder la conexión actual del 8027 hasta confirmar que el 175 funciona igual de bien en producción.
+3. Si la revisión de "Fernando Frausto Art" también se rechaza: replantear con Meta soporte directamente, dado que van dos rechazos con nombres de persona física correctos — puede requerir escalar el caso, no repetir el mismo formulario una tercera vez sin ayuda humana de Meta.
+4. El portafolio "Parque Chapultepec" (`286737720523042`) NO se va a seguir usando para intentar verificar WhatsApp — se queda solo como dueño de la Página de Facebook/Instagram. Sus 5 cuentas de WhatsApp vacías y su verificación rechazada no requieren ninguna acción.
+
+**No repetir el error de la sección 5** (ya tachada abajo, se deja como registro histórico de qué se intentó y por qué no funcionó) — la próxima sesión debe leer esta Fase 8, no la sección 5, para saber el estado real.
 
 ## 6. Estilo de comunicación acordado (2026-08-25)
 Carlos compartió un prompt externo pidiendo respuestas ultra-comprimidas (sin saludos, sin explicación, formato mínimo). Se evaluó y se acordó: adoptar lo útil — mostrar solo diffs al editar código (no repetir archivos completos), ser directo, usar esta bitácora como memoria persistente en vez de resúmenes largos en el chat. **Rechazado explícitamente**: cualquier instrucción que reduzca las respuestas a una frase fija sin importar el contenido — eso oculta información crítica (como el rechazo de verificación de Meta) en vez de ahorrar tokens de forma útil.
