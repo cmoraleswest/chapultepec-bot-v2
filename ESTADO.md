@@ -45,6 +45,15 @@ A partir de hoy: `https://github.com/cmoraleswest/chapultepec-bot-v2` (privado) 
 
 Pendiente si Carlos quiere más: agregar más piezas de foto real al array `PIEZAS` en `lib/buffer.ts` (mismo patrón: slug, tema con el ángulo de mensaje, propiedad, `fuente: 'foto'`, nombre exacto del archivo en `galeria/`) — quedan ~80 fotos/videos sin usar todavía en la galería.
 
+## Publicaciones automáticas paradas y reparadas (26-ago-2026)
+Las publicaciones a Instagram/TikTok/Facebook se detuvieron por completo desde el 16-ago-2026 (10 días sin publicar nada, verificado en la tabla `publicaciones` de Supabase). Causa raíz encontrada navegando a `developers.buffer.com` → `publish.buffer.com/settings/api`: la clave API de Buffer (`BUFFER_API_KEY`) se creó el 18-jul-2026 con vencimiento fijo a 30 días — **caducó el 17-ago-2026**, un día después de la última publicación exitosa. El sistema fallaba en silencio (no tumbaba el cron, solo dejaba de publicar) porque `publicarDiario()` ya maneja los errores de Buffer sin lanzar excepción.
+
+**Reparado el mismo día:** se regeneró la clave en Buffer con vencimiento a **1 año (26-ago-2027)** en vez de los 30 días por defecto, se actualizó `BUFFER_API_KEY` en Vercel producción, se redesplegó, y se confirmó con una consulta real a la API de Buffer (`{ account { id } }`) que la clave nueva autentica correctamente.
+
+**Nota aparte, no relacionada con la falla:** la cuenta de Buffer de Carlos mostró un aviso de que su período de prueba de un plan de pago terminó y volvió al plan gratuito. El plan gratuito SÍ permite usar la API (límites: 100 req/15min, 500/24h, 10.000/30 días — de sobra para 1 publicación diaria), así que no fue necesario pagar nada para resolver esto.
+
+**Pendiente futuro:** esta clave vuelve a vencer el 26-ago-2027. Anotarlo para no repetir el mismo apagón silencioso de 10 días dentro de un año.
+
 ## Reglas para no revolver
 - Este archivo, no la memoria de una sesión de chat, es la verdad. Si algo aquí contradice lo que dice una sesión vieja, gana este archivo (y si este archivo está desactualizado, se corrige aquí, no se discute en el chat y se olvida).
 - Nunca mezclar con `~/chapultepec-admin` (condominio) ni con `~/chapultepec-bot` (V1 viejo, detenido, no tocar) ni con Poza Rica.
