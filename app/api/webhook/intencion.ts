@@ -16,6 +16,7 @@ export type Intencion =
   | 'RECHAZO'
   | 'PIDE_FOTOS'
   | 'AGENDA_CITA'
+  | 'CORREDOR'
   | 'CONVERSACION'
 
 export type PropiedadInteres = 'Penthouse' | 'Departamento'
@@ -32,6 +33,7 @@ Clasifica el mensaje en una intención:
 - RECHAZO: rechaza inequívocamente seguir la conversación — "no me interesa", "no gracias", "está muy caro", "no me alcanza", "lo voy a pensar" (como forma de cerrar la plática), "no tengo presupuesto para eso". Si dice que no quiere COMPRAR pero busca algo en RENTA, eso NO es RECHAZO — es CONVERSACION, porque Ana todavía le puede contestar sobre esa opción.
 - PIDE_FOTOS: pide ver fotos, imágenes o más material visual explícitamente.
 - AGENDA_CITA: quiere agendar, propone o confirma día/hora para visitar, o pregunta por disponibilidad de días — el momento en que ya está listo para pasar a coordinar una visita con un humano.
+- CORREDOR: NO es un comprador — es un corredor, asesor inmobiliario, broker o inmobiliaria que ofrece sus servicios para vender o promocionar la propiedad, dice tener un comprador/cliente interesado en representación de un tercero, pregunta si trabajan con asesores externos, o pregunta por condiciones de comisión compartida. Señales típicas: "tengo un cliente interesado en su propiedad", "somos una inmobiliaria y...", "¿comparten comisión?", "trabajo como agente inmobiliario", "manejamos cartera de compradores", "¿es exclusiva o puedo ofrecerla también?".
 - CONVERSACION: cualquier otra cosa — preguntas, información, saludo, plática normal.
 
 Y detecta a qué propiedad se refiere, si alguna:
@@ -49,7 +51,7 @@ const HERRAMIENTA: Anthropic.Tool = {
     properties: {
       intencion: {
         type: 'string',
-        enum: ['INSULTO', 'RECHAZO', 'PIDE_FOTOS', 'AGENDA_CITA', 'CONVERSACION'],
+        enum: ['INSULTO', 'RECHAZO', 'PIDE_FOTOS', 'AGENDA_CITA', 'CORREDOR', 'CONVERSACION'],
       },
       propiedad: {
         type: 'string',
@@ -90,7 +92,8 @@ export async function clasificarMensaje(texto: string): Promise<Clasificacion> {
       input?.intencion === 'INSULTO' ||
       input?.intencion === 'RECHAZO' ||
       input?.intencion === 'PIDE_FOTOS' ||
-      input?.intencion === 'AGENDA_CITA'
+      input?.intencion === 'AGENDA_CITA' ||
+      input?.intencion === 'CORREDOR'
         ? input.intencion
         : 'CONVERSACION'
 

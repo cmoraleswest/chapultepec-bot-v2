@@ -70,6 +70,17 @@ export async function actualizarInteres(telefono: string, interes: string): Prom
   if (error) console.error('[DB] Error actualizando interés:', error.message)
 }
 
+// Marcar el lead como corredor/broker — lo excluye del pipeline de
+// compradores en el CRM y del drip de seguimiento (ver page.tsx y drip.ts).
+export async function marcarCorredor(telefono: string): Promise<void> {
+  const { error } = await getSupabase()
+    .from('leads')
+    .update({ canal_origen: 'Corredor' })
+    .eq('telefono', telefono)
+
+  if (error) console.error('[DB] Error marcando corredor:', error.message)
+}
+
 // Marcar que ya se envió la info general + fotos
 // OJO: antes esta función también escribía `interes: 'Por definir'`, un valor
 // que NO existe en el CHECK constraint de la columna (solo acepta Penthouse,
