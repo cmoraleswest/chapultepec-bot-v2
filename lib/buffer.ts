@@ -33,7 +33,7 @@ const PIEZAS: { slug: string; tema: string; propiedad: PropiedadKey; fuente: 'di
   { slug: 'foto-rendimiento',  tema: 'Rendimiento por renta — con la demanda de Airbnb en Cuernavaca, un Penthouse de este nivel genera flujo mensual atractivo para quien busca invertir, no solo habitar', propiedad: 'penthouse', fuente: 'foto', foto: 'ph-alberca-real.jpg' },
   { slug: 'foto-retorno',      tema: 'Retorno de inversión — comparado con instrumentos financieros tradicionales, bienes raíces en zona consolidada da plusvalía y renta al mismo tiempo, un activo que trabaja para ti', propiedad: 'penthouse', fuente: 'foto', foto: 'ph-rooftop-hero.jpg' },
   { slug: 'foto-comparativo',  tema: 'Lo que rinde tu dinero aquí — lo que en CDMX alcanza para un departamento chico, en Cuernavaca a hora y media alcanza para esto, con plusvalía en zona en crecimiento', propiedad: 'departamento', fuente: 'foto', foto: 'depto-fachada.jpg' },
-  { slug: 'foto-comparacion',  tema: 'Compara y decide — Penthouse o Departamento, mismo desarrollo, dos formas de invertir en Parque Chapultepec', propiedad: 'departamento', fuente: 'foto', foto: 'comparativa.jpg' },
+  { slug: 'foto-especificaciones', tema: 'Especificaciones completas del Penthouse — todo lo que incluye, sin letra chica: recámaras, baños, rooftop, estacionamiento y acceso', propiedad: 'penthouse', fuente: 'foto', foto: 'ph-ficha.jpg' },
   { slug: 'foto-lifestyle',    tema: 'Vida real en el Penthouse — tardes de asador en el rooftop, la razón por la que la gente compra aquí y no solo invierte', propiedad: 'penthouse', fuente: 'foto', foto: 'ph-rooftop-asador.jpg' },
 ]
 
