@@ -34,7 +34,7 @@ const SEG_C: Record<string, string> = { 'Pendiente': '#f59e0b', 'Contactado': '#
 // seguimiento de cuál unidad había que abrir la conversación completa.
 const INTERES_LABEL: Record<string, string> = {
   'Penthouse': '🌟 PH $4.5M',
-  'Departamento': '🏠 Depto $2.9M',
+  'Departamento': '🏠 Depto $3.0M',
   'Ambos': '🌟🏠 Ambas',
 }
 const INTERES_COLOR: Record<string, string> = { 'Penthouse': '#8b5cf6', 'Departamento': '#0d9488', 'Ambos': '#2563eb' }
