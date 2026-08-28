@@ -594,7 +594,7 @@ export default function CRM() {
                 <tr key={ll.id}>
                   <td style={S.td}><span style={{ fontFamily: 'monospace' }}>{fmtTel(ll.telefono)}</span></td>
                   <td style={S.td}>{ll.nombre || <span style={{ color: '#475569' }}>—</span>}</td>
-                  <td style={S.td}>{fechaMx(ll.creado_en)}</td>
+                  <td style={S.td}>{fechaMx(ll.creado_en)} <span style={{ color: '#64748b' }}>· hace {hace(ll.creado_en)}</span></td>
                   <td style={S.td}>
                     <button onClick={() => patch(ll.id, 'llamadas_rescatadas', { contestada: !ll.contestada })}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>
