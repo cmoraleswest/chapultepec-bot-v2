@@ -77,6 +77,19 @@ Se descubrió que `chapultepec-fotos/public/fichas/ficha-departamento.pdf` (y su
 
 También se sacó `comparativa.jpg` de la rotación de redes (`lib/buffer.ts`) por el mismo motivo — mostraba $2,800,000 para el departamento. Se reemplazó por una pieza de especificaciones del Penthouse que sí está vigente.
 
+## CIERRE Y BALANCE — 27/28-ago-2026 (verificado en vivo)
+**CRM:** 95 leads totales — 39 Nuevo, 14 En Conversación, 3 Calificado, 36 No Interesado, 3 No Contactar. **0 citas agendadas activas** — sigue siendo el cuello de botella real del embudo (la conversación funciona, cerrar la visita no). Dashboard y webhook respondiendo con normalidad.
+
+**Publicaciones automáticas: CONFIRMADO FUNCIONANDO.** Primera publicación real desde la reparación de `BUFFER_API_KEY` salió el 27-ago 13:49 UTC, exitosa en Facebook, Instagram y TikTok (los 3 con estado "Publicado" en la tabla `publicaciones`). El apagón de 10 días quedó resuelto de punta a punta.
+
+**Verificación de Meta:** sigue `LIMITED`/"En revisión" a esta hora (28-ago temprano) — dentro del rango estimado de 2 días hábiles, sin motivo de alarma todavía. Revisar de nuevo si para el final del 28-ago sigue igual.
+
+**Precio del departamento:** corregido de $2,800,000 a $3,000,000 en 6 piezas (ficha PDF/JPG que se manda a leads reales + 4 piezas de la galería) — ver detalle arriba.
+
+**Contenido nuevo:** 4 fotos reales del departamento amueblado (sala/cocina, recámara/baño, cocina detalle, baño visitas) agregadas a la galería; la de sala/cocina ya está en la rotación de `lib/buffer.ts`.
+
+**Pendiente real para Carlos:** agregar un administrador de respaldo a la cuenta de Meta (nadie más la usa, sin resolver); revisar `lib/drip.ts` para poner freno a reintentos repetidos al mismo número (ver sección 6 de BITACORA.md) — dejar para después de que resuelva la verificación.
+
 ## Reglas para no revolver
 - Este archivo, no la memoria de una sesión de chat, es la verdad. Si algo aquí contradice lo que dice una sesión vieja, gana este archivo (y si este archivo está desactualizado, se corrige aquí, no se discute en el chat y se olvida).
 - Nunca mezclar con `~/chapultepec-admin` (condominio) ni con `~/chapultepec-bot` (V1 viejo, detenido, no tocar) ni con Poza Rica.
