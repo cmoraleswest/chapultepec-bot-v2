@@ -20,6 +20,15 @@ import {
 } from './leads'
 import { FOTOS_DEPTO, FICHA_AMBAS, FOTOS_PRIMER_CONTACTO, FOTOS_CHAT, FICHAS_PDF } from './config'
 
+// processIntelligentAgent() corre en after() tras responder 200 a Meta, pero
+// sigue contando contra el límite de duración de ESTA función — encadena
+// hasta 3 llamadas a Claude (clasificar intención, extraer fecha de cita,
+// generar respuesta) más envíos a Meta. Sin este límite explícito, Vercel
+// puede matar el proceso en segundo plano a medio terminar (el lead se queda
+// sin la respuesta de Ana, sin ningún error visible en el CRM). 60s es el
+// máximo permitido en el plan Hobby.
+export const maxDuration = 60
+
 // ── GET: Verificación del webhook de Meta ────────────────────────────────────
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const params = req.nextUrl.searchParams

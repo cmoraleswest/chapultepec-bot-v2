@@ -151,25 +151,35 @@ export default function CRM() {
         fetch(API('vista=corredores')).then(r => r.json()),
       ])
       const leadsData: Lead[] = Array.isArray(r1) ? r1 : []
+      const bandejaData: Bandeja[] = Array.isArray(r6) ? r6 : []
       setLeads(leadsData)
       setUrgencias(Array.isArray(r2) ? r2 : [])
       setLlamadas(Array.isArray(r3) ? r3 : [])
       setPubs(Array.isArray(r4) ? r4 : [])
       if (r5 && typeof r5.mensajesHoy === 'number') setSalud(r5)
-      setBandeja(Array.isArray(r6) ? r6 : [])
+      setBandeja(bandejaData)
       setCorredores(Array.isArray(r8) ? r8 : [])
       setSoloLlamada(Array.isArray(r7) ? r7 : [])
 
-      // Detectar leads con actividad en los últimos 30 segundos
+      // Detectar MENSAJES ENTRANTES reales en los últimos 30 segundos. Antes
+      // esto comparaba `actualizado_en` de cada lead, pero esa columna cambia
+      // con CUALQUIER actualización de la fila — moverlo de columna, apagar
+      // el bot, borrar otro lead que dispara este mismo refresh — no solo
+      // cuando el cliente escribe. Resultado: cada acción de Carlos en el
+      // CRM disparaba una alerta falsa de "MENSAJE NUEVO". Ahora se compara
+      // el último mensaje ENTRANTE real de la vista `bandeja`, que sí
+      // distingue quién mandó el último mensaje.
       const ahora = Date.now()
       const nuevos: {nombre: string, texto: string, leadId: string}[] = []
-      for (const lead of leadsData) {
-        const prev = ultimoMsgRef.current[lead.id]
-        const msDesdeUpdate = ahora - new Date(lead.actualizado_en).getTime()
-        if (prev && lead.actualizado_en > prev && msDesdeUpdate < 30000) {
-          nuevos.push({ nombre: lead.nombre || lead.telefono, texto: 'Respondió', leadId: lead.id })
+      for (const b of bandejaData) {
+        if (b.ultimo_tipo !== 'Mensaje Entrante' || !b.ultimo_mensaje_en) continue
+        const marca = b.ultimo_mensaje_en
+        const prev = ultimoMsgRef.current[b.id]
+        const msDesdeUpdate = ahora - new Date(marca).getTime()
+        if (prev && marca > prev && msDesdeUpdate < 30000) {
+          nuevos.push({ nombre: b.nombre || b.telefono, texto: 'Respondió', leadId: b.id })
         }
-        ultimoMsgRef.current[lead.id] = lead.actualizado_en
+        ultimoMsgRef.current[b.id] = marca
       }
       if (nuevos.length > 0) setMensajesNuevos(prev => [...prev, ...nuevos])
     } catch (e) { console.error(e) }

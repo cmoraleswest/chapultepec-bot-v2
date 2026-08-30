@@ -3,6 +3,13 @@ import { ejecutarCicloDrip, ejecutarRecordatoriosCita } from '../../../lib/drip'
 import { publicarDiario } from '../../../lib/buffer'
 
 export const dynamic = 'force-dynamic'
+// Esta ruta corre TRES procesos pesados en secuencia: drip sobre todos los
+// leads activos, recordatorios de cita, y publicación en 3 redes (con una
+// llamada a Claude para el caption). Sin esto, Vercel la corta al límite por
+// defecto (10s en Hobby) a la mitad de la ejecución, sin lanzar ningún error
+// visible — el cron se ve "terminado" en el log pero solo alcanzó a procesar
+// una parte de los leads. 60s es el máximo permitido en el plan Hobby.
+export const maxDuration = 60
 
 export async function GET(req: Request): Promise<NextResponse> {
   // Dos formas válidas de autenticarse: el cron nativo de Vercel manda el

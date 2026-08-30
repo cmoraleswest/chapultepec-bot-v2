@@ -90,6 +90,24 @@ interface PendienteLlamada {
   regla: string
 }
 
+// Corre `fn` sobre `items` con hasta `limite` en vuelo a la vez, en vez de
+// uno por uno. Antes el ciclo de drip procesaba los ~56 leads activos 100%
+// en secuencia (varias consultas a Supabase + un envío a Meta por lead, todo
+// esperado uno tras otro) — con datos reales eso ya se acerca o pasa el
+// límite de duración de la función en Vercel, y el cron se cortaba a la
+// mitad sin avisar. 5 a la vez es suficiente para bajar el tiempo total
+// varias veces sin acercarse a los límites de tasa de la API de WhatsApp.
+async function conLimite<T>(items: T[], limite: number, fn: (item: T) => Promise<void>): Promise<void> {
+  let indice = 0
+  async function trabajador(): Promise<void> {
+    while (indice < items.length) {
+      const item = items[indice++]
+      await fn(item)
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limite, items.length) }, trabajador))
+}
+
 export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: number; paraLlamar: number }> {
   const db = getSupabase()
   let enviados = 0
@@ -106,9 +124,9 @@ export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: 
 
   const ahora = Date.now()
 
-  for (const lead of leads as Lead[]) {
+  await conLimite(leads as Lead[], 5, async (lead) => {
     const digitos = lead.telefono.replace(/\D/g, '')
-    if (BLOQUEADOS.has(digitos)) continue
+    if (BLOQUEADOS.has(digitos)) return
 
     // Un número que ya rechazó con 131026 (sin WhatsApp) no lo va a tener la
     // próxima vez que se le intente — no es un problema de ventana ni de
@@ -121,7 +139,7 @@ export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: 
       .select('id', { count: 'exact', head: true })
       .eq('lead_id', lead.id)
       .like('contenido', '%131026%')
-    if ((sinWhatsapp ?? 0) > 0) continue
+    if ((sinWhatsapp ?? 0) > 0) return
 
     const msDesdeUpdate = ahora - new Date(lead.actualizado_en).getTime()
     const horasDesdeUpdate = msDesdeUpdate / (1000 * 60 * 60)
@@ -229,7 +247,7 @@ export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: 
         errores++
       }
     }
-  }
+  })
 
   // Un solo aviso con la lista completa del día. Uno por lead sería spam para
   // Carlos y acabaría ignorándolos, que es justo lo que pasaba antes.
