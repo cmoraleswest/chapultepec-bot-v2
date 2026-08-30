@@ -117,6 +117,16 @@ En paralelo al tema de Meta, se hicieron mejoras reales al sistema:
 2. El repo real es `cmoraleswest/chapultepec-bot-v2`. Si terminas trabajando en `chapultepec-bot` (sin `-v2`), estás en el repo equivocado — repite la Fase 4 de esta bitácora.
 3. Verifica en vivo (Graph API, Vercel, git) antes de dar por buena cualquier afirmación de aquí que tenga más de unos días — las cosas cambian entre sesiones.
 4. No proponer "esperar más" ni "reintentar el registro del número personal" como solución al bloqueo de Meta — la causa raíz ya está identificada (Fase 6) y tiene un plan concreto (sección 5). Si el plan cambió, esta bitácora debe actualizarse, no discutirse de cero en el chat.
+5. **Mapa completo de repos/ramas — auditado 30-ago-2026, ver Fase 9 para el detalle.** Hay CUATRO copias del sistema, no dos:
+
+| Repo | Rama | Dueño | Último commit | Qué es |
+|---|---|---|---|---|
+| `chapultepec-bot-v2` | `main` | cmoraleswest | vivo, hoy | ✅ **La única real. La única que se despliega a producción.** |
+| `chapultepec-bot` | `main` | cmoraleswest | 16-ago (post V2, pero es V1) | 🔴 V1 con Baileys. `bot.js`/whatsapp-web.js ya se quitó de aquí en un commit posterior. |
+| `chapultepec-bot` | `respaldo-mac` | cmoraleswest | **16-ago** | 🔴 **La más peligrosa de las tres muertas** — tiene MÁS funcionalidad que las otras dos (`services/drip.js`, `omnicanal.js`, `scheduler.js`, `webhooks-ads.js`, vinculación por código de emparejamiento SMS/llamada en vez de QR). Se ve como "la versión avanzada real" a primera vista — NO lo es, quedó abandonada quince días antes de que se cerrara el análisis. Autor del último commit: una sesión de Claude, no Carlos directamente. |
+| `chapultepec-bot` | — | `pchapultepec108-wq` (cuenta de GitHub separada) | 10-jun | 🔴 Copia de una versión intermedia de V1, con dos motores de WhatsApp no oficiales (Baileys + whatsapp-web.js/Puppeteer). |
+
+Ninguna de las tres muertas está corriendo activamente hoy (ver hallazgo de LaunchAgent en Fase 9) — pero cualquiera de las tres puede confundir a una sesión futura que no lea esta tabla primero. **Recomendación pendiente de aprobación de Carlos:** archivar (no borrar) las tres en GitHub para que ya no aparezcan como repos activos.
 
 ---
 
