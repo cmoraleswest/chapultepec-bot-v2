@@ -2,7 +2,34 @@
 
 Fuente única de verdad de este proyecto. Se actualiza al cierre de cada sesión de trabajo, con lo que cambió y lo que quedó pendiente. Cualquier sesión nueva (con o sin acceso al Mac) debe leer esto ANTES de proponer diagnósticos o acciones, y verificar en vivo (Graph API, Vercel, git) antes de dar por buena cualquier afirmación de aquí que tenga más de unos días.
 
-Última actualización: 2026-08-25.
+Última actualización: 2026-08-30.
+
+## 🔴 PENDIENTE URGENTE PARA CARLOS — verificar si el bot V1 sigue vivo en el Mac (30-ago-2026)
+Carlos compartió otro repo que no estaba documentado aquí: **`pchapultepec108-wq/chapultepec-bot`** (cuenta de GitHub distinta a `cmoraleswest`, mismo autor de commits `cmoraleswest@gmail.com` — es una copia/backup de la V1, no un proyecto nuevo). Revisado a fondo:
+
+- Trae **dos bots de WhatsApp NO oficiales** en el mismo repo: `index.js` (Baileys) y `bot.js` (whatsapp-web.js + Chrome headless vía Puppeteer). Ambos se vinculan por QR como dispositivo enlazado a un número real — NO es la API oficial de Meta que usa V2.
+- `import-whatsapp.js:65` confirma que el número usado es **777 175 8412** — el mismo número que llevamos meses intentando conectar a la API oficial (ver sección Bloqueador crítico abajo).
+- `TRD.md` de ese repo documenta que corre como **LaunchAgent de macOS con `KeepAlive`** — se reinicia solo si se cae, y `index.js:417-421` tiene lógica explícita para RECONECTAR cuando algo más ("otro cliente", código 440) le quita la sesión.
+- Apunta a un Supabase distinto (`gnarxxwxagstuspkbvql.supabase.co`, no el real `qntdyfhcxwmmfgamppbq`), así que no corrompe los datos del CRM real — pero si sigue vivo, sí puede estar respondiendo a leads reales con precios viejos ($2,800,000 en vez de $3,000,000) y un "jacuzzi privado" que no existe.
+
+**Hipótesis fuerte, no confirmada:** un cliente no oficial (Baileys/whatsapp-web.js) peleando por la sesión del mismo número que la API oficial de Meta está tratando de verificar es exactamente el tipo de cosa que dispara el comportamiento errático de meses documentado en `BITACORA.md` Fases 3 y 6 (bloqueos "WhatsApp fuera de servicio", rechazos de verificación).
+
+**Acción pendiente — SOLO Carlos puede hacerlo, ninguna sesión de chat tiene acceso al Mac:**
+```bash
+launchctl list | grep -i chapultepec
+ls -la ~/Library/LaunchAgents/ | grep -i chapultepec
+ps aux | grep -iE "chapultepec-bot|baileys|whatsapp-web" | grep -v grep
+```
+Si cualquiera de los tres muestra algo: apagarlo (`launchctl unload` del plist correspondiente) y borrar el LaunchAgent **antes** de seguir con cualquier otro diagnóstico de WhatsApp — invalida cualquier lectura que se haga mientras siga corriendo.
+
+## Reparación de estabilidad — rama `fix/estabilidad-cron-y-alertas-falsas` (30-ago-2026, sin desplegar)
+Auditoría completa de por qué "se traba, se congela y se frena con datos reales" (95 leads). Confirmado en vivo contra Supabase real que el volumen de datos NO es el problema (1255 interacciones, las vistas `bandeja`/`solo_llamada` resuelven instantáneo). La causa real es tiempo de ejecución:
+
+1. **`app/api/cron/route.ts` y `app/api/webhook/route.ts` sin `maxDuration`** — corrían con el límite por defecto de Vercel (10s en plan Hobby). El cron encadena drip + recordatorios + publicación en 3 redes en secuencia; el webhook encadena hasta 3 llamadas a Claude en segundo plano. Sin el límite explícito, Vercel puede cortar la ejecución a la mitad sin ningún error visible — un cron parcialmente corrido, o un lead real que nunca recibe la respuesta de Ana. Agregado `maxDuration = 60` a ambas rutas.
+2. **`lib/drip.ts` — el ciclo de drip corría 100% en secuencia** sobre los ~56 leads activos (varias consultas a Supabase + un envío a Meta por lead, todo esperado uno tras otro). Ahora corre con hasta 5 leads en paralelo (función `conLimite`).
+3. **Alertas falsas de "🔔 MENSAJE NUEVO"** — `app/page.tsx` comparaba `actualizado_en` de cada lead (columna que cambia con CUALQUIER update: mover de columna, apagar el bot, borrar) en vez del último mensaje ENTRANTE real. Cada acción de Carlos en el CRM disparaba una alerta falsa que se acumulaba sin limpiarse. Corregido para comparar contra `ultimo_tipo`/`ultimo_mensaje_en` de la vista `bandeja`.
+
+Validado con `tsc --noEmit` y `next build` limpios. **NO desplegado a producción** — como el deploy sigue siendo manual (`vercel --prod`), esta rama no afecta nada hasta que Carlos revise el diff y decida desplegar. Pendiente sin tocar, a propósito: el freno anti-reintentos de `lib/drip.ts` (sección 6 de `BITACORA.md`, esperando la verificación de Meta) y la autenticación por token estático del CRM (`?t=chap2026` embebido en el bundle del cliente — es un cambio de arquitectura, requiere decisión aparte de Carlos, no de rendimiento).
 
 ## Qué es esto
 Sistema autónomo de venta del Penthouse y un Departamento en el edificio Parque Chapultepec (Cuernavaca, Morelos). NO es el sistema de administración del condominio (ese vive en `~/chapultepec-admin`, es otro proyecto, no mezclar).

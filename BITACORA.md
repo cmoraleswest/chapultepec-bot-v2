@@ -2,9 +2,11 @@
 
 Historia completa del proyecto, para que ninguna sesión (de chat o de trabajo) tenga que volver a empezar de cero. `ESTADO.md` tiene el estado actual resumido; este archivo tiene el CÓMO llegamos aquí, para entender el porqué de cada decisión sin repetir errores ya resueltos.
 
-Última actualización: 2026-08-28.
+Última actualización: 2026-08-30.
 
-## 🔴 LEE ESTO PRIMERO — cierre de sesión 2026-08-28, para continuar en un chat nuevo
+## 🔴 LEE ESTO PRIMERO — actualizado 2026-08-30, ver Fase 9 al final para el detalle completo
+
+**Nuevo hallazgo sin resolver, posible causa raíz de toda la saga de Meta de abajo:** se encontró un tercer repo, `pchapultepec108-wq/chapultepec-bot`, con dos bots de WhatsApp NO oficiales (Baileys y whatsapp-web.js) diseñados para correr para siempre en el Mac de Carlos vía LaunchAgent, vinculados al mismo número 777 175 8412 que se está intentando verificar abajo. Si ese LaunchAgent sigue activo, es una explicación mucho más simple para los bloqueos "WhatsApp fuera de servicio" y rechazos de verificación que cualquier cosa de identidad de negocio. **Pendiente que Carlos verifique en su Mac — ver Fase 9.** No descartar el resto de este documento por esto: la causa raíz de la Fase 6 (identidad de negocio) puede seguir siendo válida en paralelo, no son mutuamente excluyentes.
 
 **Verificación de Meta:** portafolio **"Carlos Morales - Parque Chapultepec WhatsApp"** (antes "Fernando Frausto Art", `business_id 358500678256951`) sigue **"En revisión"** para CARLOS ALBERTO MORALES DE LA VEGA, confirmado en vivo el 28-ago tanto por `health_status` de la Graph API como por el Centro de Seguridad de Meta — sin cambio desde que se envió el 26-ago. Estimado de Meta: ~2 días hábiles. **Si sigue igual pasado el 28-ago, escribir de nuevo al chat de soporte de Meta pidiendo seguimiento — no reintentar el formulario de verificación otra vez.**
 
@@ -171,3 +173,35 @@ Se encontró en la auditoría del mismo día que el sistema reintentó el mismo 
 
 ## 7. Estilo de comunicación acordado (2026-08-25)
 Carlos compartió un prompt externo pidiendo respuestas ultra-comprimidas (sin saludos, sin explicación, formato mínimo). Se evaluó y se acordó: adoptar lo útil — mostrar solo diffs al editar código (no repetir archivos completos), ser directo, usar esta bitácora como memoria persistente en vez de resúmenes largos en el chat. **Rechazado explícitamente**: cualquier instrucción que reduzca las respuestas a una frase fija sin importar el contenido — eso oculta información crítica (como el rechazo de verificación de Meta) en vez de ahorrar tokens de forma útil.
+
+## 8. Fase 9 — Auditoría de estabilidad + repo V1 no documentado (30-ago-2026)
+
+**Motivo de la sesión:** Carlos reportó "se traba, se congela y se frena con datos reales" (95 leads activos) y pidió auditoría completa antes de tocar nada.
+
+**Diagnóstico, confirmado en vivo contra Supabase real** (proyecto `qntdyfhcxwmmfgamppbq`, 95 leads, 1255 interacciones vía MCP de Supabase): el volumen de datos NO es el problema — las vistas `bandeja` y `solo_llamada` resuelven instantáneo a este tamaño (se descarta la sospecha inicial de falta de índices). La causa real es tiempo de ejecución server-side:
+
+1. `app/api/cron/route.ts` y `app/api/webhook/route.ts` no tenían `maxDuration` — corrían con el límite por defecto de Vercel (10s en Hobby). El cron encadena drip + recordatorios de cita + publicación en 3 redes en secuencia; el webhook encadena hasta 3 llamadas a Claude en `after()`. Sin el límite explícito, Vercel puede cortar la ejecución a la mitad sin ningún error visible en los logs.
+2. `lib/drip.ts` procesaba los ~56 leads activos 100% en secuencia (varias consultas a Supabase + un envío a Meta por lead, todo esperado uno tras otro) — con datos reales esto ya se acerca al límite de duración.
+3. `app/page.tsx` disparaba la alerta "🔔 MENSAJE NUEVO" comparando `actualizado_en` de cada lead — columna que cambia con CUALQUIER update a la fila, no solo cuando escribe el cliente. Cada acción de Carlos en el CRM (mover de columna, apagar el bot, borrar) generaba una alerta falsa que se acumulaba sin limpiarse sola — coincide exactamente con el síntoma reportado de que el panel "se siente cada vez más lento" durante una sesión larga de trabajo real.
+
+**Reparado y subido a la rama `fix/estabilidad-cron-y-alertas-falsas`** (NO mergeada a `main`, NO desplegada — el deploy sigue siendo manual vía Vercel CLI, así que esta rama no cambia nada en producción hasta que Carlos revise el diff y decida desplegar): `maxDuration = 60` en ambas rutas, `lib/drip.ts` paralelizado a 5 leads a la vez (función `conLimite`), y la detección de "mensaje nuevo" movida a comparar el último mensaje ENTRANTE real de la vista `bandeja` en vez de `actualizado_en`. Validado con `tsc --noEmit` y `next build` limpios — no se corrió `test-suite.js` porque escribe en la base de producción real y requiere llaves que esta sesión no tenía.
+
+**Explícitamente NO tocado, a propósito:** el freno anti-reintentos de `lib/drip.ts` (sección 6, sigue esperando la verificación de Meta) y la autenticación del CRM por token estático `?t=chap2026` (embebido en el bundle del cliente — cualquiera con la URL del RUNBOOK tiene control total; es un cambio de arquitectura que Carlos debe aprobar aparte, no es un problema de rendimiento).
+
+**Hallazgo nuevo, no documentado en ninguna sesión anterior — repo `pchapultepec108-wq/chapultepec-bot`:** Carlos lo compartió a mitad de la sesión mencionando que ha intentado (sin lograrlo del todo) darle a cada proyecto su propia cuenta de GitHub, y que por eso hay cuentas y versiones distintas regadas. Este repo en particular:
+
+- Es una copia/backup de la V1 (mismo autor de commits, `cmoraleswest@gmail.com`, pero alojado en la cuenta `pchapultepec108-wq`) — NO es el mismo repo que `cmoraleswest/chapultepec-bot` (rama `respaldo-mac`) mencionado en la Fase 2. Puede haber una TERCERA copia de la V1 dando vueltas — no se auditó esa por falta de tiempo en esta sesión.
+- Contiene DOS bots de WhatsApp no oficiales: `index.js` (Baileys) y `bot.js` (whatsapp-web.js + Puppeteer/Chrome headless). Ambos se vinculan por QR a un número real, no usan la API oficial de Meta.
+- `import-whatsapp.js:65` confirma que el número es **777 175 8412** — el mismo número de la saga de verificación de las Fases 3 y 6.
+- `TRD.md` de ese repo documenta que corre como **LaunchAgent de macOS con `KeepAlive`**, y `index.js:417-421` tiene lógica explícita para reconectarse cuando "otro cliente" (código 440) le quita la sesión — es decir, está diseñado para pelear por el control de la sesión de WhatsApp de ese número, indefinidamente, si el LaunchAgent sigue instalado.
+- Apunta a un Supabase distinto (`gnarxxwxagstuspkbvql.supabase.co`), así que no corrompe los datos reales del CRM — pero si sigue corriendo, puede estar contestando a leads reales con precios viejos ($2,800,000 en vez de $3,000,000) sin que aparezca en ningún lado del CRM real.
+
+**Hipótesis fuerte, NO confirmada — pendiente que Carlos la verifique en su Mac, ninguna sesión de chat tiene acceso:**
+```bash
+launchctl list | grep -i chapultepec
+ls -la ~/Library/LaunchAgents/ | grep -i chapultepec
+ps aux | grep -iE "chapultepec-bot|baileys|whatsapp-web" | grep -v grep
+```
+Si alguno muestra algo: es un cliente no oficial peleando por la sesión del mismo número que se está intentando verificar con la API oficial — candidato muy fuerte para explicar meses de bloqueos "WhatsApp fuera de servicio" y rechazos de verificación, más simple que la explicación de identidad de negocio de la Fase 6 (que puede seguir siendo válida en paralelo — no son excluyentes). Apagarlo y borrar el LaunchAgent antes de seguir con cualquier diagnóstico de Meta.
+
+**Para la próxima sesión:** si Carlos confirma que el LaunchAgent está activo y lo apaga, actualizar esta sección con el resultado. Si sigue con la idea de separar cada proyecto en su propia cuenta de GitHub, ese es un tema de organización aparte — no bloquea nada de lo de arriba, pero vale la pena ayudarlo a consolidar antes de que aparezca una cuarta copia.
