@@ -2,7 +2,32 @@
 
 Historia completa del proyecto, para que ninguna sesión (de chat o de trabajo) tenga que volver a empezar de cero. `ESTADO.md` tiene el estado actual resumido; este archivo tiene el CÓMO llegamos aquí, para entender el porqué de cada decisión sin repetir errores ya resueltos.
 
-Última actualización: 2026-08-26.
+Última actualización: 2026-08-28.
+
+## 🔴 LEE ESTO PRIMERO — cierre de sesión 2026-08-28, para continuar en un chat nuevo
+
+**Verificación de Meta:** portafolio **"Carlos Morales - Parque Chapultepec WhatsApp"** (antes "Fernando Frausto Art", `business_id 358500678256951`) sigue **"En revisión"** para CARLOS ALBERTO MORALES DE LA VEGA, confirmado en vivo el 28-ago tanto por `health_status` de la Graph API como por el Centro de Seguridad de Meta — sin cambio desde que se envió el 26-ago. Estimado de Meta: ~2 días hábiles. **Si sigue igual pasado el 28-ago, escribir de nuevo al chat de soporte de Meta pidiendo seguimiento — no reintentar el formulario de verificación otra vez.**
+
+El otro portafolio, **"Parque Chapultepec" (`286737720523042`)** — el que se creó en el plan viejo de la sección 5 — quedó **RECHAZADO** y descartado para WhatsApp. Solo se usa para la Página de Facebook/Instagram que publica Buffer.
+
+**Dato importante para cuando se apruebe:** el portafolio bueno ya tiene, HOY, los dos números conectados con calidad Alta — el 8027 (WABA `1923471098361486`, el que usa el bot) y el **175-8412 (WABA `1964573394173039`, nunca usado por el código)**. No hace falta crear nada nuevo ni migrar de portafolio — cuando se apruebe, el límite de mensajes se levanta para ambos a la vez. Ahí decidir con Carlos si vale la pena cambiar el bot al 175 (su número público real) en vez del 8027 invisible.
+
+**Reparado hoy (26 al 28-ago):**
+- `BUFFER_API_KEY` había caducado (duraba solo 30 días) y detuvo las publicaciones automáticas 10 días — regenerada con vencimiento a 1 año, **confirmado con una publicación real exitosa en las 3 redes el 27-ago 13:49 UTC**.
+- Precio del departamento corregido de $2,800,000/$2,900,000 a **$3,000,000** en: código (ya estaba bien), `ficha-departamento.pdf/jpg` (editado a nivel píxel con Python/PIL, es la que se manda a leads reales), 4 piezas de la galería (`depto-ficha.jpg`, `depto-hero.jpg`, `ph-imagen-wa.jpg`, `comparativa.jpg`), y la etiqueta `INTERES_LABEL` del CRM en `app/page.tsx` (decía "$2.9M").
+- Seguridad de la cuenta de Meta de Carlos: se quitó un número de teléfono viejo que ya no controla de los contactos de recuperación, se creó una llave de acceso (passkey) en su Mac, y se activó autenticación en dos pasos por SMS. **Sigue pendiente:** agregar un administrador de respaldo — Carlos no tiene a nadie de confianza para agregar, sin resolver.
+- Portafolio renombrado de "Fernando Frausto Art" a "Carlos Morales - Parque Chapultepec WhatsApp" (cosmético, no afectó la verificación).
+- 4 fotos reales nuevas del departamento amueblado agregadas a la galería (`depto-real-*.jpg`); una ya está en la rotación de `lib/buffer.ts`.
+- Vista "Llamadas" del CRM: se agregó tiempo relativo ("· hace 1d") junto a la fecha — ya estaba ordenada correctamente (reciente arriba), no había bug real ahí.
+- **Confirmado con Meta:** las plantillas `seguimiento_24h`, `seguimiento_48h`, `cierre_7dias`, `info_ambas_propiedades`, `info_penthouse_chapultepec`, `recordatorio_cita_chapultepec` y `alerta_lead_asesor` están TODAS aprobadas — el dato viejo de "4 plantillas sin aprobar" ya no aplica.
+
+**Pendiente real sin resolver:**
+1. Freno anti-reintentos en `lib/drip.ts` (ver sección 6) — se encontraron 147 reintentos al mismo número en 2 meses, patrón que Meta puede leer como spam. Esperar a que resuelva la verificación antes de tocar esa lógica.
+2. Administrador de respaldo en la cuenta de Meta — depende de que Carlos tenga a alguien de confianza.
+3. Cero citas agendadas activas en el CRM — el embudo conversa pero no cierra visita; 3 leads Calificados (`527771312084`, `525543694285`, `527775601413`) con ventana cerrada, necesitan plantilla o llamada.
+4. `~80` fotos/videos sin revisar visualmente todavía en `chapultepec-fotos/public/galeria/` (se revisó una parte por calidad — ver ESTADO.md de ese repo).
+
+---
 
 **Nota de nombre:** el portafolio de Meta al que este documento se refiere como "Fernando Frausto Art" se RENOMBRÓ el 26-ago-2026 a **"Carlos Morales - Parque Chapultepec WhatsApp"** (mismo business_id `358500678256951`, solo cambió el nombre visible — no se movió ningún activo). El nombre viejo se deja tal cual en el resto de este archivo porque así se llamaba en el momento de cada evento histórico; en Meta ya no aparece con ese nombre.
 
