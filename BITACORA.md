@@ -204,4 +204,14 @@ ps aux | grep -iE "chapultepec-bot|baileys|whatsapp-web" | grep -v grep
 ```
 Si alguno muestra algo: es un cliente no oficial peleando por la sesión del mismo número que se está intentando verificar con la API oficial — candidato muy fuerte para explicar meses de bloqueos "WhatsApp fuera de servicio" y rechazos de verificación, más simple que la explicación de identidad de negocio de la Fase 6 (que puede seguir siendo válida en paralelo — no son excluyentes). Apagarlo y borrar el LaunchAgent antes de seguir con cualquier diagnóstico de Meta.
 
-**Para la próxima sesión:** si Carlos confirma que el LaunchAgent está activo y lo apaga, actualizar esta sección con el resultado. Si sigue con la idea de separar cada proyecto en su propia cuenta de GitHub, ese es un tema de organización aparte — no bloquea nada de lo de arriba, pero vale la pena ayudarlo a consolidar antes de que aparezca una cuarta copia.
+**Resultado, confirmado en vivo el 30-ago-2026 por Carlos:**
+```
+launchctl list | grep -i chapultepec        →  (vacío — nada cargado ahora mismo)
+ps aux | grep -iE "chapultepec-bot|baileys|whatsapp-web"   →  (vacío — nada corriendo ahora mismo)
+ls -la ~/Library/LaunchAgents/ | grep -i chapultepec:
+  com.chapultepec.bot.plist       (8-jun-2026)
+  com.chapultepec.publicar.plist  (6-jun-2026)
+```
+**Conclusión parcial:** ahora mismo NINGÚN proceso está peleando por la sesión de WhatsApp — la hipótesis de "conflicto activo hoy" queda descartada para este momento puntual. Pero los dos `.plist` siguen guardados en `~/Library/LaunchAgents/`, solo que no cargados en esta sesión del sistema — si el Mac se reinicia y algo los vuelve a cargar (o alguien corre `launchctl load` sobre ellos), se reactivarían solos sin aviso. Es una bomba de tiempo, no un peligro descartado del todo.
+
+`com.chapultepec.publicar.plist` es un hallazgo nuevo sin documentar en ninguna sesión anterior — no se sabe todavía qué programa dispara ni con qué frecuencia (posible candidato: los scripts `publicar-diario.mjs`/`programar-semana.js` del repo V1, que publicarían en redes por su cuenta, separado del cron de Buffer que usa V2 hoy). **Pendiente:** Carlos comparte el contenido de ambos plist (`plutil -p ~/Library/LaunchAgents/com.chapultepec.bot.plist` y lo mismo para `publicar`) para confirmar qué comando/ruta ejecutan, y luego decidir si se borran los archivos por completo (recomendado, ya que V1 está oficialmente retirado) o se dejan pero marcados como deshabilitados explícitamente.
