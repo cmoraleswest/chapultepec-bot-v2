@@ -262,6 +262,17 @@ Carlos reportó que las alertas de "lead quiere agendar cita" (para que él dé 
 
 **Causa raíz confirmada:** `alertarCarlos()` en `app/api/webhook/whatsapp.ts` decidía si ya se había mandado la alerta según el HTTP 200 de `enviarTexto()` — pero ese 200 solo confirma que Meta ACEPTÓ la petición, no que la entregó. Fuera de la ventana de 24h (el caso normal para Carlos, que casi nunca le escribe al bot) Meta acepta la petición igual y avisa "failed" minutos después por el webhook de status — para entonces la función ya había regresado dando la alerta por buena, y la plantilla de respaldo (`alerta_lead_asesor`, la única que sí puede entregarse fuera de la ventana) **nunca se intentaba**. Es el mismo bug que ya se había diagnosticado y corregido en `PUT /api/leads` (`route.ts:238-248`, ver el comentario ahí) — ese arreglo nunca se replicó en `alertarCarlos()`.
 
-**Corregido:** ahora `alertarCarlos()` revisa `ventanaAbierta()` del lead de Carlos ANTES de intentar texto libre, igual que el resto del sistema — commit en la rama `fix/estabilidad-cron-y-alertas-falsas`. Validado con `tsc`/`next build` limpios. **Pendiente de despliegue**, como todo lo demás de esta rama.
+**Corregido:** ahora `alertarCarlos()` revisa `ventanaAbierta()` del lead de Carlos ANTES de intentar texto libre, igual que el resto del sistema.
 
-**Para la próxima sesión, verificar después del deploy:** confirmar con un lead de prueba real (o esperando el próximo "Calificado" real) que la alerta SÍ llega esta vez — no se pudo probar en producción sin desplegar primero.
+## 10. DESPLEGADO A PRODUCCIÓN — 30-ago-2026, sesión cerrada
+
+Carlos hizo merge de `fix/estabilidad-cron-y-alertas-falsas` a `main` (fast-forward, `0190edf..8d1976f`) y corrió `vercel --prod` desde su Mac. Confirmado en la terminal: `✅ Production: ... [30s]` y `🔗 Aliased: https://chapultepec-bot-v2.vercel.app`. **Todos los fixes de esta sesión están en vivo:**
+
+1. `maxDuration=60` en `/api/cron` y `/api/webhook`.
+2. Drip paralelizado a 5 leads a la vez.
+3. Alertas falsas de "MENSAJE NUEVO" corregidas (ya comparan mensaje entrante real, no `actualizado_en`).
+4. **`alertarCarlos()` corregido** — revisa la ventana antes de intentar texto libre. Este es el que más importa: antes de este deploy, 178 alertas de "lead quiere agendar cita" se habían perdido en silencio.
+
+**Para la próxima sesión, verificar:** con el próximo lead real que llegue a "Calificado" (intención de agendar cita), confirmar que la alerta SÍ le llegó a Carlos al 777 492 1176 — no se pudo probar en producción antes de desplegar, así que esta es la primera vez que corre con el fix puesto.
+
+**Pendientes que quedaron fuera de esta sesión, sin resolver:** freno anti-reintentos de `lib/drip.ts` (sección 6, sigue esperando verificación de Meta), token estático del CRM (`?t=chap2026`, decisión de arquitectura pendiente de Carlos), 115 llamadas rescatadas sin seguimiento marcado, ficha-departamento.pdf con precio viejo aún sin regenerar, administrador de respaldo en la cuenta de Meta.
