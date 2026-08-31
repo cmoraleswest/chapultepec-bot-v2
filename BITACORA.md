@@ -231,7 +231,7 @@ ls -la ~/Library/LaunchAgents/ | grep -i chapultepec:
 
 **Rotación de llaves — progreso:**
 - ✅ **Anthropic** — confirmado 30-ago: la llave expuesta estaba guardada en el console de Anthropic con el nombre `whatsapp-chapultepec` — DISTINTA a `chapultepec-v2-produccion` (la que usa el Vercel real, no se tocó). Carlos la borró del console. No hizo falta redeploy en Vercel porque nunca compartieron la misma llave.
-- ⬜ Buffer — pendiente.
+- ✅ **Buffer** — confirmado 30-ago: en la cuenta de Buffer de Carlos solo existe UNA llave activa, `chapultepec-bot-v2 produccion` (creada 26-ago-2026, la real, no se tocó). La llave expuesta en el chat (`D8n8VswNRv...`) es la vieja de 30 días documentada en la Fase 8 — ya había caducado sola el 17-ago-2026, antes de la regeneración del 26-ago. No requirió ninguna acción.
 - ⬜ Supabase anon del proyecto viejo (`gnarxxwxagstuspkbvql`) — pendiente, no afecta nada vivo.
 - **`com.chapultepec.bot`** — corre `node /Users/maccarlosmoraless/chapultepec-bot/index.js` (el bot con Baileys) con `KeepAlive: true` + `RunAtLoad: true` — confirma que si se recarga, arranca solo y se reinicia solo indefinidamente, exactamente el mecanismo sospechado.
 
