@@ -241,4 +241,13 @@ ls -la ~/Library/LaunchAgents/ | grep -i chapultepec:
 
 **Hecho, confirmado el 30-ago-2026:** Carlos corrió `launchctl bootout` + `mv` sobre los dos `.plist`, movidos a `~/Desktop/plists-chapultepec-v1-desactivados/`. Verificado con `ls ~/Library/LaunchAgents/ | grep -i chapultepec` → vacío. Ya no pueden recargarse solos ni siquiera después de un reinicio. El código de V1 se queda intacto en `~/chapultepec-bot` por si algún día se necesita revisar, solo se quitó el mecanismo de auto-arranque.
 
-**CIERRE DE LA FASE 9 — todo lo accionable de esta sesión quedó resuelto:** código de estabilidad (rama `fix/estabilidad-cron-y-alertas-falsas`, pendiente que Carlos despliegue), 3 llaves expuestas resueltas, 3 repos/ramas V1 archivados, LaunchAgents del Mac desactivados. **Único pendiente real que sigue abierto: escribir al chat de soporte de Meta pidiendo seguimiento de la verificación** — requiere la cuenta de Meta de Carlos, ninguna sesión de chat puede hacerlo.
+**Contacto con soporte de Meta — hecho, 30-ago-2026:** Carlos escribió al chat de soporte de Meta Business preguntando por el estado de la verificación de "Carlos Morales - Parque Chapultepec WhatsApp" (`business_id 358500678256951`). Respuesta del asistente: confirma estado **"pending"**, sin información nueva más allá de lo ya sabido — sugiere seguir monitoreando el Centro de Seguridad y las notificaciones/correo del admin, y verificar que los documentos coincidan exacto con el nombre legal (referencia a la discrepancia de nombre de la Fase 6, ya corregida el 26-ago). No se escaló a agente humano en esta sesión — si sigue igual varios días más, la siguiente sesión puede pedir explícitamente escalar a un humano.
+
+**CIERRE DE LA FASE 9 — todo lo accionable de esta sesión quedó resuelto:**
+- ✅ Código de estabilidad — rama `fix/estabilidad-cron-y-alertas-falsas`, **pendiente que Carlos la despliegue a producción** (`vercel --prod`) para que los fixes tomen efecto.
+- ✅ 3 llaves expuestas — resueltas (1 revocada, 2 ya inertes).
+- ✅ 3 repos/ramas V1 — archivados.
+- ✅ LaunchAgents del Mac — desactivados y movidos, verificado.
+- ✅ Seguimiento con soporte de Meta — hecho, sigue "pending", nada nuevo que hacer por ahora salvo esperar o volver a escribir en unos días.
+
+No queda ningún pendiente accionable de esta sesión sin resolver.
