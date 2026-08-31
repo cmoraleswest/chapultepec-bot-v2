@@ -228,6 +228,11 @@ ls -la ~/Library/LaunchAgents/ | grep -i chapultepec:
 `com.chapultepec.publicar.plist` es un hallazgo nuevo sin documentar en ninguna sesión anterior. Contenido completo, confirmado por Carlos (`plutil -p`):
 
 - **`com.chapultepec.publicar`** — corre `node /Users/maccarlosmoraless/chapultepec-bot/publicar-diario.mjs` todos los días a las **7:00 AM hora local** (`StartCalendarInterval`), justo la misma hora en que el cron real de Vercel publica en redes (13:00 UTC = 7am CDMX). Traía credenciales reales en `EnvironmentVariables` (Anthropic, Buffer, y el anon key del Supabase viejo `gnarxxwxagstuspkbvql`) — **Carlos las pegó en el chat sin querer, se le indicó rotarlas de inmediato como acción prioritaria, fuera de este documento** (no se registran los valores aquí).
+
+**Rotación de llaves — progreso:**
+- ✅ **Anthropic** — confirmado 30-ago: la llave expuesta estaba guardada en el console de Anthropic con el nombre `whatsapp-chapultepec` — DISTINTA a `chapultepec-v2-produccion` (la que usa el Vercel real, no se tocó). Carlos la borró del console. No hizo falta redeploy en Vercel porque nunca compartieron la misma llave.
+- ⬜ Buffer — pendiente.
+- ⬜ Supabase anon del proyecto viejo (`gnarxxwxagstuspkbvql`) — pendiente, no afecta nada vivo.
 - **`com.chapultepec.bot`** — corre `node /Users/maccarlosmoraless/chapultepec-bot/index.js` (el bot con Baileys) con `KeepAlive: true` + `RunAtLoad: true` — confirma que si se recarga, arranca solo y se reinicia solo indefinidamente, exactamente el mecanismo sospechado.
 
 **Resultado final, confirmado en vivo el 30-ago-2026:** ninguno de los dos tiene rastro de haber corrido nunca — `/tmp/chapultepec-publicar.log`, `/tmp/chapultepec-bot.log` y `/tmp/chapultepec-bot-error.log` no existen (si hubieran corrido aunque fuera una vez, macOS habría creado esos archivos). **Corrección importante a la hipótesis de arriba:** esto NO confirma que el bot V1 haya causado los meses de bloqueos de verificación de Meta — no hay evidencia de que haya corrido en este Mac. La explicación de identidad de negocio de la Fase 6 sigue siendo la mejor explicación real disponible; este hallazgo solo cierra un riesgo *futuro* (si alguien recarga estos plists más adelante), no explica el pasado.
