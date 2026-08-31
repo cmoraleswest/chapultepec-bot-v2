@@ -1,0 +1,47 @@
+name: CI
+
+# Corre en cada push y cada pull request — revisa que el proyecto compile y
+# no tenga errores de TypeScript antes de que el código llegue a main.
+# No reemplaza el despliegue manual (vercel --prod sigue siendo cosa de
+# Carlos desde su Mac) — esto solo detecta errores de código, no verifica
+# que el sistema funcione de verdad con datos reales.
+#
+# Usa valores falsos de las variables de entorno porque el build de
+# Next.js solo necesita que existan para no fallar al arrancar — no hace
+# ninguna llamada real a Supabase/Meta/Claude/Buffer durante el build.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Revisar tipos de TypeScript
+        run: npx tsc --noEmit
+
+      - name: Compilar (next build)
+        run: npm run build
+        env:
+          SUPABASE_URL: https://placeholder.supabase.co
+          SUPABASE_KEY: placeholder
+          ANTHROPIC_API_KEY: placeholder
+          WHATSAPP_TOKEN: placeholder
+          WHATSAPP_PHONE_ID: placeholder
+          WHATSAPP_VERIFY_TOKEN: placeholder
+          BUFFER_API_KEY: placeholder
+          CRON_SECRET: placeholder
+          CRON_SECRET_TOKEN: placeholder
