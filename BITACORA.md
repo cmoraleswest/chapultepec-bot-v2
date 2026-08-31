@@ -126,7 +126,9 @@ En paralelo al tema de Meta, se hicieron mejoras reales al sistema:
 | `chapultepec-bot` | `respaldo-mac` | cmoraleswest | **16-ago** | 🔴 **La más peligrosa de las tres muertas** — tiene MÁS funcionalidad que las otras dos (`services/drip.js`, `omnicanal.js`, `scheduler.js`, `webhooks-ads.js`, vinculación por código de emparejamiento SMS/llamada en vez de QR). Se ve como "la versión avanzada real" a primera vista — NO lo es, quedó abandonada quince días antes de que se cerrara el análisis. Autor del último commit: una sesión de Claude, no Carlos directamente. |
 | `chapultepec-bot` | — | `pchapultepec108-wq` (cuenta de GitHub separada) | 10-jun | 🔴 Copia de una versión intermedia de V1, con dos motores de WhatsApp no oficiales (Baileys + whatsapp-web.js/Puppeteer). |
 
-Ninguna de las tres muertas está corriendo activamente hoy (ver hallazgo de LaunchAgent en Fase 9) — pero cualquiera de las tres puede confundir a una sesión futura que no lea esta tabla primero. **Recomendación pendiente de aprobación de Carlos:** archivar (no borrar) las tres en GitHub para que ya no aparezcan como repos activos.
+Ninguna de las tres muertas está corriendo activamente hoy (ver hallazgo de LaunchAgent en Fase 9) — pero cualquiera de las tres puede confundir a una sesión futura que no lea esta tabla primero.
+
+**Archivado, confirmado por Carlos el 30-ago-2026:** `cmoraleswest/chapultepec-bot` (cubre `main` y `respaldo-mac`) — ya aparece como "Archived" en GitHub, de solo lectura. **Pendiente:** `pchapultepec108-wq/chapultepec-bot` sigue sin archivar — mismos pasos, en esa cuenta (`https://github.com/pchapultepec108-wq/chapultepec-bot/settings` → Danger Zone → Archive this repository).
 
 ---
 
