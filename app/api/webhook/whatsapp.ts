@@ -91,13 +91,31 @@ export async function enviarPlantilla(to: string, phoneNumberId?: string): Promi
 // le escribe al bot — así que la ventana estaba cerrada y TODAS las alertas se
 // caían sin que nadie se enterara. Por eso nunca sabía que un lead preguntaba
 // algo o quería una cita.
-// Ahora: se intenta el texto libre (más completo si la ventana está abierta) y
-// si Meta lo rechaza, se manda la plantilla de utilidad `alerta_lead_asesor`,
+// Se intenta el texto libre (más completo si la ventana está abierta) y si
+// Meta lo rechaza, se manda la plantilla de utilidad `alerta_lead_asesor`,
 // que sí puede entregarse fuera de la ventana.
+//
+// OJO — bug real encontrado el 30-ago-2026, 178 fallos acumulados: el chequeo
+// de arriba sonaba bien pero nunca se implementó completo. enviarTexto()
+// regresa true en cuanto Meta ACEPTA la petición (HTTP 200), no cuando el
+// mensaje se entrega de verdad — fuera de la ventana Meta acepta igual y
+// avisa "failed" minutos después por el webhook de status (131047/131049).
+// Como la ventana de Carlos casi siempre está cerrada, `okLibre` salía true
+// por el 200 falso, la función regresaba de inmediato, y la plantilla de
+// respaldo NUNCA se intentaba — la alerta se perdía en silencio total, sin
+// dejar ni un rastro en el CRM. Mismo patrón que ya se había corregido en
+// PUT /api/leads (ver el comentario ahí) — aquí nunca se aplicó. Ahora se
+// revisa la ventana ANTES de intentar texto libre, con la misma función que
+// usa el resto del sistema, en vez de confiar en el "200 OK" de Meta.
 const TEL_CARLOS = '527774921176'
 
 export async function alertarCarlos(resumen: string, lead: string, mensaje: string): Promise<void> {
-  const okLibre = await enviarTexto(TEL_CARLOS, resumen)
+  const { getSupabase } = await import('../../../lib/supabase')
+  const { ventanaAbierta } = await import('./leads')
+  const { data: leadCarlos } = await getSupabase().from('leads').select('id').eq('telefono', TEL_CARLOS).maybeSingle()
+  const dentroDeVentana = leadCarlos ? await ventanaAbierta(leadCarlos.id) : false
+
+  const okLibre = dentroDeVentana && (await enviarTexto(TEL_CARLOS, resumen))
   if (okLibre) return
 
   const res = await fetch(getUrl(), {
