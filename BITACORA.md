@@ -277,4 +277,16 @@ Carlos hizo merge de `fix/estabilidad-cron-y-alertas-falsas` a `main` (fast-forw
 
 **Intento de prueba del 31-ago, sin resultado útil — anotar para no repetir el error:** Carlos probó mandándole "Test" desde su propio número (527774921176, el mismo que `NUMERO_PRUEBAS`/`TEL_CARLOS`) al bot. Confirmado en Supabase: el mensaje SÍ llegó (08:39:23), el bot SÍ contestó ("¿En qué te puedo ayudar?", 08:39:27) y quedó `ultimo_status: delivered` — el sistema básico está sano. **Pero esa prueba nunca iba a activar la alerta**, y no por ningún bug: `evaluarFiltros()` en `filtros.ts` marca los mensajes desde `NUMERO_PRUEBAS` como `PROCESAR_PRUEBA`, y en `route.ts` el parámetro `avisar` que se le pasa a `processIntelligentAgent()` es `filtro === 'PROCESAR_REAL'` — falso para `PROCESAR_PRUEBA`. Es decir: **Carlos escribiéndose a sí mismo desde el 777 492 1176 NUNCA genera alerta, por diseño** (evita que se spamee a sí mismo en cada prueba), desde mucho antes de esta sesión. Para probar `alertarCarlos()` de verdad hace falta que el mensaje llegue desde un número DISTINTO al 777 492 1176 — Carlos no tenía disponible un segundo número al cierre de esta sesión, queda pendiente para cuando lo tenga o llegue un lead real.
 
+## ✅ CONFIRMADO EN PRODUCCIÓN — 31-ago-2026, el fix de `alertarCarlos()` funciona
+
+Sin necesitar un segundo teléfono: se simuló un mensaje entrante real contra el webhook de producción (`curl` desde la Mac de Carlos, `POST /api/webhook`, número sintético `529990000001`, mismo que usa `test-suite.js` — verificado que no colisiona con ningún lead real). Resultado, confirmado en Supabase:
+
+- Mensaje recibido, clasificado, ficha de las 2 propiedades + 4 fotos enviadas — mismo camino que un lead real de primer contacto.
+- Los 5 envíos fallaron su entrega real (131026, número sintético sin WhatsApp) — esperado y correcto, no es el bug.
+- **Carlos confirmó que le llegó la alerta a su WhatsApp (777 492 1176)** con el texto "Se le mandó la ficha de LAS DOS propiedades..." — la ventana de 24h estaba abierta (por su propia prueba de "Test" minutos antes), así que corrió por el camino de texto libre, el mismo que antes fallaba en silencio.
+
+**El bug de los 178 fallos queda confirmado como reparado, de punta a punta, en producción real.** Lead de prueba (`529990000001`) borrado de Supabase después de confirmar — no queda basura en el CRM.
+
+Sigue pendiente, de menor prioridad: confirmar el camino de la PLANTILLA de respaldo (cuando la ventana de Carlos esté cerrada) — la prueba de hoy solo ejercitó el camino de texto libre porque la ventana estaba abierta por coincidencia. Probar de nuevo cuando hayan pasado >24h desde el último mensaje de Carlos al bot, para confirmar que la plantilla `alerta_lead_asesor` también entrega bien.
+
 **Pendientes que quedaron fuera de esta sesión, sin resolver:** freno anti-reintentos de `lib/drip.ts` (sección 6, sigue esperando verificación de Meta), token estático del CRM (`?t=chap2026`, decisión de arquitectura pendiente de Carlos), 115 llamadas rescatadas sin seguimiento marcado, ficha-departamento.pdf con precio viejo aún sin regenerar, administrador de respaldo en la cuenta de Meta.
