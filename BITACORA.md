@@ -251,3 +251,17 @@ ls -la ~/Library/LaunchAgents/ | grep -i chapultepec:
 - ✅ Seguimiento con soporte de Meta — hecho, sigue "pending", nada nuevo que hacer por ahora salvo esperar o volver a escribir en unos días.
 
 No queda ningún pendiente accionable de esta sesión sin resolver.
+
+## 9. Bug real encontrado y corregido — `alertarCarlos()` nunca llegaba a Carlos (30-ago-2026, continuación de la Fase 9)
+
+Carlos reportó que las alertas de "lead quiere agendar cita" (para que él dé seguimiento manual) dejaron de llegarle. Verificado en vivo contra Supabase:
+
+- 3 leads reales pasaron a estado "Calificado" con `bot_activo=false` los últimos 3 días (527775601413, 525543694285, 527771312084) — la detección de intención SÍ funciona.
+- Carlos confirmó: ninguna de las 3 alertas le llegó al 777 492 1176 (el número correcto, no es confusión de destino).
+- **178 registros `[NO ENTREGADO]`** en `interacciones`, todos contra el lead de Carlos mismo, códigos 131047 ("re-engagement... 24h") y 131049 ("healthy ecosystem engagement").
+
+**Causa raíz confirmada:** `alertarCarlos()` en `app/api/webhook/whatsapp.ts` decidía si ya se había mandado la alerta según el HTTP 200 de `enviarTexto()` — pero ese 200 solo confirma que Meta ACEPTÓ la petición, no que la entregó. Fuera de la ventana de 24h (el caso normal para Carlos, que casi nunca le escribe al bot) Meta acepta la petición igual y avisa "failed" minutos después por el webhook de status — para entonces la función ya había regresado dando la alerta por buena, y la plantilla de respaldo (`alerta_lead_asesor`, la única que sí puede entregarse fuera de la ventana) **nunca se intentaba**. Es el mismo bug que ya se había diagnosticado y corregido en `PUT /api/leads` (`route.ts:238-248`, ver el comentario ahí) — ese arreglo nunca se replicó en `alertarCarlos()`.
+
+**Corregido:** ahora `alertarCarlos()` revisa `ventanaAbierta()` del lead de Carlos ANTES de intentar texto libre, igual que el resto del sistema — commit en la rama `fix/estabilidad-cron-y-alertas-falsas`. Validado con `tsc`/`next build` limpios. **Pendiente de despliegue**, como todo lo demás de esta rama.
+
+**Para la próxima sesión, verificar después del deploy:** confirmar con un lead de prueba real (o esperando el próximo "Calificado" real) que la alerta SÍ llega esta vez — no se pudo probar en producción sin desplegar primero.
