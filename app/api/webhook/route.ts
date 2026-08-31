@@ -189,7 +189,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           nombre,
           `mandó un ${tipo || 'archivo'}, no texto`
         )
-        await enviarTexto(from, 'Recibí tu mensaje pero no puedo escuchar audios ni ver imágenes todavía — ¿me lo puedes escribir en texto?', phoneNumberId)
+        const respuesta = 'Recibí tu mensaje pero no puedo escuchar audios ni ver imágenes todavía — ¿me lo puedes escribir en texto?'
+        const ok2 = await enviarTexto(from, respuesta, phoneNumberId)
+        // Antes esta respuesta se mandaba pero nunca se guardaba en el
+        // historial — el CRM mostraba la nota de voz del cliente sin
+        // ninguna respuesta después, como si el bot no hubiera contestado
+        // nada, aunque sí lo había hecho.
+        await guardarInteraccion(leadNoTexto.id, 'saliente', ok2 ? respuesta : `[FALLÓ] ${respuesta}`)
       }
     }
     return ok
