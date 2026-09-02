@@ -2,9 +2,13 @@
 
 Historia completa del proyecto, para que ninguna sesión (de chat o de trabajo) tenga que volver a empezar de cero. `ESTADO.md` tiene el estado actual resumido; este archivo tiene el CÓMO llegamos aquí, para entender el porqué de cada decisión sin repetir errores ya resueltos.
 
-Última actualización: 2026-08-30.
+Última actualización: 2026-09-02.
 
-## 🔴 LEE ESTO PRIMERO — actualizado 2026-08-30, ver Fase 9 al final para el detalle completo
+## 🔴 LEE ESTO PRIMERO — actualizado 2026-09-02, ver Fase 11 al final para el detalle completo
+
+**Confirmado en vivo 02-sep-2026 (sesión de chat, sin acceso al Mac):** producción está al día — el deployment activo en Vercel coincide exacto con el commit `8d1976f` (HEAD de `main`). Nada de la rama `fix/estabilidad-cron-y-alertas-falsas` mencionada en la Fase 9 sigue pendiente de desplegar; ya está en `main` y en producción. Si una sesión futura ve esa rama mencionada como "sin desplegar" en las secciones de abajo, ese dato ya es viejo — confiar en este párrafo o volver a verificar contra Vercel antes de repetir el diagnóstico.
+
+**Verificación de Meta — actualización 02-sep-2026, ver Fase 11 para el detalle completo:** sigue "En revisión", van 6 días hábiles de los 14 que Meta mismo cita como plazo normal — todavía NO está atrasado según su propio criterio, aunque se sienta lento. Confirmado por Graph API en vivo: error técnico real es el código `141010` a nivel BUSINESS ("The Business has not passed business verification"), y la aprobación del nombre para mostrar del número 8027 está atada a esa misma verificación, no es un trámite aparte. Enlaces de escalación ya obtenidos y guardados por si se pasa del plazo — ver Fase 11.
 
 **Nuevo hallazgo sin resolver, posible causa raíz de toda la saga de Meta de abajo:** se encontró un tercer repo, `pchapultepec108-wq/chapultepec-bot`, con dos bots de WhatsApp NO oficiales (Baileys y whatsapp-web.js) diseñados para correr para siempre en el Mac de Carlos vía LaunchAgent, vinculados al mismo número 777 175 8412 que se está intentando verificar abajo. Si ese LaunchAgent sigue activo, es una explicación mucho más simple para los bloqueos "WhatsApp fuera de servicio" y rechazos de verificación que cualquier cosa de identidad de negocio. **Pendiente que Carlos verifique en su Mac — ver Fase 9.** No descartar el resto de este documento por esto: la causa raíz de la Fase 6 (identidad de negocio) puede seguir siendo válida en paralelo, no son mutuamente excluyentes.
 
@@ -290,3 +294,30 @@ Sin necesitar un segundo teléfono: se simuló un mensaje entrante real contra e
 Sigue pendiente, de menor prioridad: confirmar el camino de la PLANTILLA de respaldo (cuando la ventana de Carlos esté cerrada) — la prueba de hoy solo ejercitó el camino de texto libre porque la ventana estaba abierta por coincidencia. Probar de nuevo cuando hayan pasado >24h desde el último mensaje de Carlos al bot, para confirmar que la plantilla `alerta_lead_asesor` también entrega bien.
 
 **Pendientes que quedaron fuera de esta sesión, sin resolver:** freno anti-reintentos de `lib/drip.ts` (sección 6, sigue esperando verificación de Meta), token estático del CRM (`?t=chap2026`, decisión de arquitectura pendiente de Carlos), 115 llamadas rescatadas sin seguimiento marcado, ficha-departamento.pdf con precio viejo aún sin regenerar, administrador de respaldo en la cuenta de Meta.
+
+## 11. Auditoría completa + seguimiento de verificación de Meta (02-sep-2026)
+
+**Motivo de la sesión:** Carlos pidió una auditoría completa ("que todo funcione bien") y revisar Meta específicamente.
+
+**Confirmado en vivo, sin cambios de código necesarios:**
+- El deployment de producción en Vercel coincide exacto con `main` (commit `8d1976f`) — la rama de estabilidad de la Fase 9 ya está desplegada, contra lo que decían ESTADO.md/BITACORA.md en ese momento (esos archivos quedaron desactualizados en ese punto específico, ya corregido arriba en "LEE ESTO PRIMERO").
+- `next build` limpio, sin errores de tipos ni sintaxis.
+- Número 8027: `quality_rating GREEN`, `status CONNECTED`, app sigue suscrita al WABA.
+- Buffer: token válido, publicación automática del día (02-sep 13:49 UTC) confirmada exitosa en Facebook/Instagram/TikTok.
+- `[NO ENTREGADO]`: solo 2 en las últimas 48h contra 178 históricos — la reparación de `alertarCarlos()` de la Fase 9 está funcionando.
+- Snapshot del CRM: 96 leads (42 No Interesado, 37 Nuevo, 11 En Conversación, 3 Calificado, 3 No Contactar), 0 corredores nuevos, interés registrado: 16 Penthouse, 7 Departamento, 73 sin definir. Sigue en 0 citas agendadas activas — mismo cuello de botella de la Fase 9.
+
+**Verificación de Meta — seguimiento activo con soporte:**
+
+Se contactó de nuevo el chat de soporte de Meta Business (02-sep-2026), con estos datos obtenidos en vivo vía Graph API (`health_status` del `phone_number_id` 1171134882752298) para darle al bot de soporte algo concreto en vez de solo "sigo esperando":
+
+- Error `141010` a nivel entidad BUSINESS (`358500678256951`): "The Business has not passed business verification." — confirma que el `messaging_limit_tier: TIER_250` viene directo de la verificación pendiente.
+- Hallazgo nuevo: el `health_status` también trae `"Your display name has not been approved yet. Your message limit will increase after the display name is approved."` — parecía un trámite aparte, pero el soporte de Meta confirmó que está atado sistémicamente a la verificación del negocio, se resuelve solo cuando esa se apruebe. No requiere ninguna acción separada de Carlos.
+- `code_verification_status: "EXPIRED"` en el número 8027 — visto en el mismo `health_status`, sin explorar más en esta sesión; no se mencionó como problema activo por soporte de Meta. Anotar por si una sesión futura lo necesita.
+- Meta confirmó explícitamente: NO reenviar el formulario de verificación ni tocar el nombre del negocio — reinicia el contador de revisión.
+- Plazo que Meta mismo cita: 14 días hábiles desde el reenvío (26-ago-2026). Al 02-sep van 6 días hábiles — dentro del rango normal, no atrasado todavía según su propio criterio, aunque ya se había pasado la estimación optimista original de ~2 días hábiles.
+- Enlaces de escalación obtenidos y guardados (en `~/Desktop/meta-verificacion-seguimiento.txt`, copia completa de la línea de tiempo y el caso): `https://www.whatsapp.com/contact/` (más específico, probar primero) y `https://www.facebook.com/support/` (hub general, seleccionar "WhatsApp Business Account" ahí adentro).
+
+**Próxima acción con fecha concreta:** si para ~15-sep-2026 (14 días hábiles desde el 26-ago) la verificación sigue "En revisión" sin cambio, usar los enlaces de arriba para escalar — no repetir el formulario ni abrir el chat de soporte desde cero, ya se agotó esa vía dos veces sin resultado nuevo.
+
+**No se tocó código en esta sesión relacionado con Meta** — todo lo de esta Fase 11 es auditoría y seguimiento administrativo, sin cambios de repo salvo esta entrada de bitácora.
