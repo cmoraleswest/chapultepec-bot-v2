@@ -171,11 +171,22 @@ export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: 
             : false
 
           if (okPlantilla) {
+            // okPlantilla solo confirma que Meta ACEPTÓ la petición — el rechazo
+            // real (ej. 131049 "healthy ecosystem engagement") puede llegar
+            // segundos después por el webhook de status, ya con esta interacción
+            // guardada como si hubiera salido bien. Guardar aquí el estado
+            // anterior deja que ese webhook revierta el cambio de estado si
+            // resulta que nunca se entregó — si no, un lead real que nunca vio
+            // el mensaje de cierre queda marcado "No Interesado" para siempre
+            // por un tecnicismo, no porque de verdad haya rechazado.
             await db.from('interacciones').insert({
               lead_id: lead.id,
               tipo: 'Mensaje Saliente Bot',
               contenido: `[PLANTILLA ${regla.plantillaWa}] seguimiento automático`,
-              metadata: { drip_regla: regla.nombre },
+              metadata: {
+                drip_regla: regla.nombre,
+                ...(regla.nuevoEstado ? { nuevoEstado: regla.nuevoEstado, estado_anterior: lead.estado } : {}),
+              },
             })
             await db.from('leads').update({ drip_count: (lead.drip_count ?? 0) + 1 }).eq('id', lead.id)
             enviados++
@@ -225,7 +236,10 @@ export async function ejecutarCicloDrip(): Promise<{ enviados: number; errores: 
           lead_id: lead.id,
           tipo: 'Mensaje Saliente Bot',
           contenido: texto,
-          metadata: { drip_regla: regla.nombre },
+          metadata: {
+            drip_regla: regla.nombre,
+            ...(regla.nuevoEstado ? { nuevoEstado: regla.nuevoEstado, estado_anterior: lead.estado } : {}),
+          },
         })
 
         await db

@@ -102,6 +102,41 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           metadata: { status: 'failed', errores },
         })
 
+        // ── REVERTIR CIERRE FALSO ────────────────────────────────────────────
+        // El drip (lib/drip.ts) avanza el estado del lead (ej. a "No Interesado")
+        // en cuanto Meta ACEPTA la plantilla — pero ese 200 solo confirma que se
+        // recibió la petición, no que se entregó. Si el rechazo real llega aquí
+        // segundos después, el lead ya quedó marcado como cerrado sin haber visto
+        // nunca el mensaje. Se revierte solo si nadie más tocó el estado desde
+        // entonces (sigue siendo exactamente el nuevoEstado que el drip aplicó) y
+        // el envío fallido fue reciente — evita revertir algo que ya cambió por
+        // una razón real y distinta.
+        const { data: ultimoSaliente } = await db
+          .from('interacciones')
+          .select('metadata, creado_en')
+          .eq('lead_id', leadFallo.id)
+          .eq('tipo', 'Mensaje Saliente Bot')
+          .order('creado_en', { ascending: false })
+          .limit(1)
+          .single()
+
+        const meta = ultimoSaliente?.metadata as Record<string, unknown> | undefined
+        if (meta?.nuevoEstado && meta?.estado_anterior && ultimoSaliente) {
+          const hace15min = Date.now() - new Date(ultimoSaliente.creado_en).getTime() < 15 * 60 * 1000
+          if (hace15min) {
+            const { data: leadActual } = await db.from('leads').select('estado').eq('id', leadFallo.id).single()
+            if (leadActual?.estado === meta.nuevoEstado) {
+              await db.from('leads').update({ estado: meta.estado_anterior }).eq('id', leadFallo.id)
+              await db.from('interacciones').insert({
+                lead_id: leadFallo.id,
+                tipo: 'Nota Manual',
+                contenido: `[REVERTIDO] El envío que lo iba a pasar a "${meta.nuevoEstado}" nunca se entregó — regresa a "${meta.estado_anterior}".`,
+                metadata: { revertido_de: meta.nuevoEstado, revertido_a: meta.estado_anterior },
+              })
+            }
+          }
+        }
+
         // Un lead al que no le podemos escribir es un lead que se pierde en
         // silencio. Se avisa a Carlos para que levante el teléfono, que es el
         // único canal que sí funciona en estos casos.
