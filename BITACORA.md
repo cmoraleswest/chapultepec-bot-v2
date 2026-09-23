@@ -321,3 +321,21 @@ Se contactó de nuevo el chat de soporte de Meta Business (02-sep-2026), con est
 **Próxima acción con fecha concreta:** si para ~15-sep-2026 (14 días hábiles desde el 26-ago) la verificación sigue "En revisión" sin cambio, usar los enlaces de arriba para escalar — no repetir el formulario ni abrir el chat de soporte desde cero, ya se agotó esa vía dos veces sin resultado nuevo.
 
 **No se tocó código en esta sesión relacionado con Meta** — todo lo de esta Fase 11 es auditoría y seguimiento administrativo, sin cambios de repo salvo esta entrada de bitácora.
+
+## 12. Auditoría de estado + verificación de Meta muy atrasada (23-sep-2026)
+
+**Sesión sin acceso al Mac.** Se re-clonó el repo desde GitHub (el checkout anterior no persistió entre sesiones) — confirmado que `main` local coincide exacto con `origin/main` (`0d00ad5`, commit del 3-sep: "fix: revierte cierre falso cuando la plantilla de drip nunca se entrega" — no documentado en ninguna bitácora anterior, revisar el diff en una próxima sesión si hace falta contexto).
+
+**CRM, confirmado en vivo contra Supabase:**
+- 119 leads (sin contar corredores): 58 No Interesado, 42 Nuevo, 11 En Conversación, 3 No Contactar, 3 Calificado, **2 Cita Agendada**.
+- **Primera vez con citas agendadas activas desde que se audita este proyecto** (527775601413, 527773700050) — el cuello de botella de "0 citas" que se repitió en las Fases 9 y 11 parece haberse roto, sin que ninguna sesión de chat haya tocado código para lograrlo (probablemente Carlos dando seguimiento manual). No confirmado el detalle de esas 2 citas (día/hora) — revisar en el CRM directamente si hace falta.
+- 2 corredores identificados, separados del pipeline correctamente.
+- Publicaciones: sanas, diarias, las 3 redes con "Publicado" — última el 22-sep 13:49 UTC.
+- 134 llamadas rescatadas con `seguimiento='Pendiente'` — número alto, no auditado a fondo esta sesión, posible pendiente para revisar.
+- `ficha-departamento.pdf` — el `if (cual === 'Departamento') continue` que la desactivaba (Fase de 26-ago) ya NO aparece en `route.ts`. Parece haberse resuelto (Carlos regeneró la ficha y algo/alguien reactivó el envío) — **no confirmado con certeza al 100%**, solo por ausencia del código de bloqueo; verificar mandándose la ficha a sí mismo si una sesión futura necesita certeza total.
+
+**Verificación de Meta — sigue "En revisión", ahora MUY fuera de plazo.** Confirmado en vivo por Carlos (captura del Centro de Seguridad): mismo mensaje exacto de siempre, "Gracias por enviar tu información... aproximadamente dos días laborables... En revisión", **sin cambio desde el 26-ago**. Van ~4 semanas — muy por encima de los 14 días hábiles que Meta mismo citó, y ya se pasó la fecha del 15-sep que esta misma bitácora marcó como el punto para escalar.
+
+**Pendiente confirmar en la próxima sesión:** si Carlos ya escaló con los links guardados (`https://www.whatsapp.com/contact/`, `https://www.facebook.com/support/`) — se le indicó hacerlo en esta sesión, no se confirmó el resultado antes de que la sesión terminara. **Si la próxima sesión encuentra que sigue "En revisión" sin que Carlos haya escalado todavía, no hay que auditar nada más — solo insistir en la escalación, ya está todo diagnosticado desde la Fase 6.**
+
+No se tocó código esta sesión.
