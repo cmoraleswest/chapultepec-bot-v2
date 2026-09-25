@@ -339,3 +339,22 @@ Se contactó de nuevo el chat de soporte de Meta Business (02-sep-2026), con est
 **Pendiente confirmar en la próxima sesión:** si Carlos ya escaló con los links guardados (`https://www.whatsapp.com/contact/`, `https://www.facebook.com/support/`) — se le indicó hacerlo en esta sesión, no se confirmó el resultado antes de que la sesión terminara. **Si la próxima sesión encuentra que sigue "En revisión" sin que Carlos haya escalado todavía, no hay que auditar nada más — solo insistir en la escalación, ya está todo diagnosticado desde la Fase 6.**
 
 No se tocó código esta sesión.
+
+## 13. RECHAZADA por segunda vez + soporte automatizado agotado (23-25 sep 2026)
+
+**Carlos escaló como quedó pendiente.** Escribió a soporte de WhatsApp Business y luego a Meta Business Suite con los mensajes preparados en esta bitácora. Hallazgos del camino:
+
+- **Pista falsa investigada a fondo, descartada:** el bot de soporte alegó que restricciones de "actividad inusual" (18-19 sep) en la cuenta publicitaria de Carlos (`Carlos MV`, ID `71069556`) estaban pausando la revisión del negocio. Se encontró un saldo real pendiente de $2.11 en esa cuenta publicitaria — Carlos lo pagó, saldo confirmado en $0.00. El mismo bot después aclaró explícitamente: **la cuenta publicitaria y la verificación del negocio son procesos independientes** — pagar el saldo no acelera ni afecta la revisión. No perseguir más esta pista (perfil bloqueado, tarjeta a re-verificar, etc.) — el bot fue dando explicaciones distintas cada vez sin resolver nada, patrón de chatbot dando vueltas, no de diagnóstico real.
+- **Soporte automatizado confirmó explícitamente que NO puede transferir a un agente humano en vivo** ("Actualmente no puedo realizar una transferencia directa con un agente en vivo") — se agotaron las dos vías de chat automatizado (WhatsApp Business Support y Meta Business Suite) sin lograr escalación humana real.
+
+**25-sep-2026 — la verificación CAMBIÓ DE ESTADO por primera vez desde el 26-ago:** ya no dice "En revisión" — ahora dice **"Se rechazó tu solicitud" / "No se pudo verificar"**, sin razón específica visible en el resumen (pendiente que Carlos revise si hay un detalle expandible). Esto es el **segundo rechazo** de este portafolio con el nombre correcto (persona física, Carlos Alberto Morales De La Vega) — coincide exacto con el escenario que la Fase 8 ya había anticipado: *"si se rechaza otra vez... van dos rechazos con nombre correcto... escalar con soporte humano, no repetir el formulario una tercera vez sin ayuda."*
+
+**Plan vigente ahora:**
+1. NO resubir documentos ni reenviar el formulario por tercera vez sin ayuda humana real — instrucción explícita de Meta, ya la ignoramos una vez sin querer al reintentar automáticamente por chat.
+2. Opciones reales que quedan, ninguna de código, todas requieren acción de Carlos fuera de los canales de chat ya agotados:
+   - Publicar en X/Twitter etiquetando soporte de Meta/WhatsApp con el caso — gratis, rápido, no intentado todavía.
+   - Contactar un WhatsApp Business Solution Provider (Twilio, 360dialog, Gupshup, etc.) para escalar por su canal de partner — no intentado todavía, es la opción con más probabilidad real según el análisis de la Fase 12.
+   - Último recurso, no activar todavía: registrar razón social propia (RFC) y verificar un portafolio nuevo desde cero bajo esa empresa formal.
+3. Se le ofreció a Carlos dar acceso vía token de la Graph API para que una sesión de chat pueda consultar el estado técnico directo (sin depender de capturas de pantalla) — pendiente que decida si lo genera, con la advertencia de seguridad de regenerarlo/revocarlo después de usarlo.
+
+**No se tocó código en esta sesión** — todo administrativo/seguimiento de Meta.
