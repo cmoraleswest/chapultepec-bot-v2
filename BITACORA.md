@@ -357,4 +357,16 @@ No se tocó código esta sesión.
    - Último recurso, no activar todavía: registrar razón social propia (RFC) y verificar un portafolio nuevo desde cero bajo esa empresa formal.
 3. Se le ofreció a Carlos dar acceso vía token de la Graph API para que una sesión de chat pueda consultar el estado técnico directo (sin depender de capturas de pantalla) — pendiente que decida si lo genera, con la advertencia de seguridad de regenerarlo/revocarlo después de usarlo.
 
+## 14. Escalación real lograda — caso abierto con 360dialog (24-25 sep 2026)
+
+**Se descartó el post en X** (Carlos no tiene cuenta) — nos fuimos directo a la opción de BSP.
+
+**Se creó cuenta en 360dialog** (app.360dialog.com), organización "Parque Chapultepec", **sin conectar ningún número todavía** (a propósito — solo se buscaba llegar a soporte humano, no migrar infraestructura sin decidirlo antes). Fricción real al configurar 2FA (QR/código manual fallando repetido) — se resolvió borrando la entrada del autenticador y volviendo a escanear un QR fresco en vez de usar la clave manual (probable error de tecleo en la clave de 33 caracteres).
+
+**Logrado — caso real con soporte humano de 360dialog, algo que Meta nunca dio:** vía su botón "Need help?" → Asistente de IA → escaló solo (sin que Carlos lo pidiera explícitamente) a especialista humano. **Ticket abierto, conversation ID: `215476095996116`**, respuesta estimada dentro de 4 horas (plan Regular). Mensaje enviado explicando: WhatsApp Business ya funciona con API oficial de Meta (conexión directa, no vía 360dialog), verificación de negocio (ID `358500678256951`) rechazada dos veces sin razón clara, Meta no puede escalar a humano.
+
+**Pendiente para la próxima sesión:** revisar si 360dialog respondió el ticket `215476095996116` — si ofrecen ayuda real para destrabar la verificación de Meta (siendo partner oficial, es la vía con más probabilidad de esta bitácora). Si no dan solución después de esto, las opciones que quedan son el post de X (crear cuenta nueva) o el último recurso de registrar razón social propia — ver sección 13.
+
+No se tocó código en esta sesión — todo administrativo.
+
 **No se tocó código en esta sesión** — todo administrativo/seguimiento de Meta.
