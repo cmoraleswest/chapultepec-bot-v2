@@ -369,4 +369,18 @@ No se tocó código esta sesión.
 
 No se tocó código en esta sesión — todo administrativo.
 
-**No se tocó código en esta sesión** — todo administrativo/seguimiento de Meta.
+## 15. Respuesta de 360dialog, pista nueva sin confirmar + tarjeta de marketing agregada (29-30 sep, 2 oct 2026)
+
+**360dialog respondió (Hassaan), pero no pueden escalar directamente:** "Because this WABA is not currently managed by or shared with 360dialog, we do not have access to the account to raise an escalation with Meta on your behalf." Confirma que decidimos bien no conectar el número ahí sin decidirlo antes.
+
+**Pista nueva, no probada todavía:** Hassaan compartió la guía de 360dialog sobre "Classic Business Verification" (`docs.360dialog.com/.../classic-business-verification`). Tiene una sección específica para cuentas rechazadas: ir a **Centro de Seguridad → buscar el botón "Contactar con Facebook"** (aparece debajo del mensaje de rechazo, NO es el chat de ayuda genérico que hemos usado) — da un número de caso específico y acceso a conversación directa con soporte de Facebook. **Pendiente que Carlos lo confirme** — se le pidió revisar si ese botón aparece, no se confirmó antes de que la sesión terminara.
+
+**Se buscó en Gmail (cmoraleswest@gmail.com) un correo de rechazo de Meta — no se encontró ninguno.** La guía de 360dialog dice que Meta manda un correo explicando el rechazo; o nunca llegó, o usa un correo admin distinto al Gmail principal de Carlos — sin confirmar cuál correo está registrado en Meta Business Suite.
+
+**Ticket de 360dialog (`215476095996116`) se cerró por inactividad dos veces** (Carlos no contestó a tiempo) — se puede reabrir respondiendo dentro de 5 días de cada cierre. Última respuesta de Carlos fue "Thank you, I'm reviewing the guide now." — revisar en la próxima sesión si el ticket sigue abierto o si hay que reabrirlo de nuevo.
+
+**Confusión sin resolver, importante no repetir:** Carlos preguntó por el "CURP de Jorge Arturo Alanis" (relacionado a "Grupo Arcofin", la constructora del desarrollo, mencionada en la sección 5), asegurando que ya había compartido esa información "con todos los documentos" antes. **Se confirmó que NO existe ningún registro de eso en esta bitácora ni en esta sesión** — es casi seguro que se lo dio a OTRA sesión de chat distinta que nunca lo escribió aquí. Se explicó a Carlos que el CURP es dato personal sensible de un tercero y no se debe buscar sin su consentimiento. **Si Carlos vuelve a mencionar esto, pedirle que lo comparta de nuevo — no asumir que existe en algún lado no documentado.**
+
+**Tarjeta de marketing agregada — "Perfil de comprador: extranjero/ingresos en dólares":** imagen revisada (cifras correctas, dato legal de zona no restringida correcto), subida por Carlos a `chapultepec-fotos/public/galeria/perfil-comprador-04-extranjero.png` (con fricción real: primero quedó en carpeta "público" nueva por error, luego en la raíz de `public/` en vez de `public/galeria/` — ambas corregidas). Agregada a `PIEZAS` en `lib/buffer.ts` (commits `b761705`, `9c90b0d` fix de extensión .jpg→.png, `7e73fde` reordenada para intentar que publicara el 30-sep).
+
+**🔴 CONFIRMADO EN VIVO 2-oct-2026 — el deploy NUNCA se hizo.** La publicación real del 30-sep usó `ph-ficha.jpg` (la pieza vieja, antes del reordenamiento) — prueba directa de que ninguno de los 3 commits de esta pieza (`b761705`, `9c90b0d`, `7e73fde`) ha llegado a producción todavía. **Acción inmediata pendiente de Carlos: `vercel --prod` ya.** Mientras no se despliegue, la tarjeta nueva nunca va a publicarse, sin importar cuántas veces se reordene el array — el problema no es el código, es el deploy manual que no se está corriendo. Considerar en una próxima sesión si vale la pena insistir en automatizar el deploy (conectar Vercel↔GitHub) en vez de depender de que Carlos lo corra a mano cada vez — ya van varias sesiones con este mismo cuello de botella.
