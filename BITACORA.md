@@ -444,3 +444,20 @@ No se tocó código en esta sesión — todo administrativo.
 **Alternativas si la metaetiqueta sigue sin detectarse después de esperar:** Meta ofrece también "Subir un archivo HTML a tu directorio raíz" o "Actualizar el registro TXT de DNS con el registrador de dominios" — no probadas todavía, quedan como plan B.
 
 **Estado al cierre de esta sesión (2-oct, ~2am):** formulario de verificación de negocio completo y enviado con datos correctos por primera vez desde que se abrió este caso. Verificación de dominio técnicamente lista, pendiente detección de Meta (horas). **Primera vez en toda la historia de este proyecto que el formulario se completa con el nombre legal, dirección y RFC correctos desde el inicio — las dos veces anteriores (26-ago y lo que haya generado el rechazo del 25-sep) partieron de datos con errores reales.**
+
+## 19. Las 3 tarjetas faltantes de "Perfil de comprador" (1, 2, 3) agregadas + versión revisada de la 4 (2-oct-2026, madrugada)
+
+Carlos mandó las tarjetas 1 ("Empresario o comerciante con capital"), 2 ("Profesionista que invierte y renta"), 3 ("Cliente de banca patrimonial") y una **versión revisada de la 4** ("Extranjero", con un beneficio nuevo agregado: "a poco más de una hora de la Ciudad de México"). Se había confirmado que el repo `chapultepec-fotos` solo tenía la tarjeta 4 original — las demás nunca llegaron a subirse en sesiones anteriores.
+
+**Subido a `chapultepec-fotos/public/galeria/`:** `perfil-comprador-01-empresario.png`, `perfil-comprador-02-profesionista.png` (convertido de .webp a .png con Pillow), `perfil-comprador-03-banca-patrimonial.png`, y `perfil-comprador-04-extranjero-v2.png` (la versión revisada, guardada aparte — **no reemplazó la original, pendiente que Carlos decida si quiere sustituirla en la rotación o dejar ambas**). Commit `d2064d3`.
+
+**Agregadas a `PIEZAS` en `lib/buffer.ts`** (commit `be74349`): `foto-perfil-empresario`, `foto-perfil-profesionista`, `foto-perfil-banca` — las 3 tarjetas nuevas, usando datos ya validados en sesiones anteriores (precio $4,500,000 MXN, rendimiento 10.4% bruto anual ya usado en la tarjeta 4). El arreglo `PIEZAS` pasó de 12 a 15 piezas, lo cual recorrió el cálculo de rotación (`diaDelAno % 15`) — turnos recalculados desde hoy (2-oct, índice 5 = foto-plusvalia):
+
+- **6-oct:** foto-perfil-extranjero (la tarjeta 4 original, ya en rotación desde antes)
+- **9-oct:** foto-perfil-empresario (tarjeta 1, nueva)
+- **10-oct:** foto-perfil-profesionista (tarjeta 2, nueva)
+- **11-oct:** foto-perfil-banca (tarjeta 3, nueva)
+
+**🔴 PENDIENTE CRÍTICO, patrón ya conocido de este proyecto: el código está en GitHub pero NO en producción.** Hace falta que Carlos corra `git pull && vercel --prod` desde `~/chapultepec-bot-v2` antes de que cualquiera de estas piezas nuevas pueda publicarse en redes — si no se despliega antes del 9-oct, se repite exactamente el mismo problema de la Fase 15 (piezas que pasan su turno sin publicarse por falta de deploy).
+
+**Pendiente de decisión de Carlos:** si la tarjeta 4 "v2" (con el beneficio extra) debe reemplazar a la original en la rotación, agregarse como una pieza más, o descartarse.
