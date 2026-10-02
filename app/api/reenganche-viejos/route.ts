@@ -54,12 +54,24 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ ok: true, detalle: 'No hay llamadas pendientes viejas que procesar.' })
   }
 
+  // Un mismo lead puede tener varias llamadas perdidas viejas (una fila por
+  // cada llamada). Se agrupa por lead (o por teléfono si no hay lead_id) y
+  // se manda la plantilla UNA sola vez por persona — no una por cada llamada
+  // suya. Bug real encontrado el 2-oct-2026: sin este filtro, alguien con 6
+  // llamadas viejas recibía la misma plantilla 6 veces en segundos.
+  const porPersona = new Map<string, typeof llamadas[number]>()
+  for (const ll of llamadas) {
+    const clave = ll.lead_id ?? `tel:${ll.telefono}`
+    if (!porPersona.has(clave)) porPersona.set(clave, ll)
+  }
+  const unicos = Array.from(porPersona.values())
+
   let enviados = 0
   let omitidos = 0
   let errores = 0
   const detalle: string[] = []
 
-  await conLimite(llamadas, 5, async (llamada) => {
+  await conLimite(unicos, 5, async (llamada) => {
     const { data: lead } = await db
       .from('leads')
       .select('id, nombre, estado')
@@ -71,6 +83,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       omitidos++
       return
     }
+
+    // Marca TODAS las llamadas pendientes de esta misma persona, no solo la
+    // que se tomó como representante — así no quedan filas sueltas que un
+    // segundo visiteo vuelva a procesar y a mandar la plantilla otra vez.
+    const marcarTodas = () =>
+      llamada.lead_id
+        ? db.from('llamadas_rescatadas').update({ seguimiento: 'Contactado' }).eq('lead_id', llamada.lead_id).eq('seguimiento', 'Pendiente')
+        : db.from('llamadas_rescatadas').update({ seguimiento: 'Contactado' }).eq('telefono', llamada.telefono).eq('seguimiento', 'Pendiente')
 
     try {
       const nombre = (lead.nombre || '').split(' ')[0] || 'que tal'
@@ -96,7 +116,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       // Se marca 'Contactado' se haya logrado entregar o no — ya se intentó,
       // no queda como 'Pendiente' esperando un segundo intento automático.
-      await db.from('llamadas_rescatadas').update({ seguimiento: 'Contactado' }).eq('id', llamada.id)
+      await marcarTodas()
       detalle.push(`${llamada.telefono}: ${ok ? 'OK' : 'ERROR'}`)
     } catch (e) {
       errores++
@@ -104,5 +124,5 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
   })
 
-  return NextResponse.json({ ok: true, enviados, omitidos, errores, total: llamadas.length, detalle })
+  return NextResponse.json({ ok: true, enviados, omitidos, errores, total: unicos.length, detalle })
 }
