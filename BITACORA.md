@@ -461,3 +461,5 @@ Carlos mandó las tarjetas 1 ("Empresario o comerciante con capital"), 2 ("Profe
 **🔴 PENDIENTE CRÍTICO, patrón ya conocido de este proyecto: el código está en GitHub pero NO en producción.** Hace falta que Carlos corra `git pull && vercel --prod` desde `~/chapultepec-bot-v2` antes de que cualquiera de estas piezas nuevas pueda publicarse en redes — si no se despliega antes del 9-oct, se repite exactamente el mismo problema de la Fase 15 (piezas que pasan su turno sin publicarse por falta de deploy).
 
 **Pendiente de decisión de Carlos:** si la tarjeta 4 "v2" (con el beneficio extra) debe reemplazar a la original en la rotación, agregarse como una pieza más, o descartarse.
+
+**✅ Deploy confirmado el mismo día (2-oct-2026):** Carlos corrió `git pull` + `vercel --prod`, éxito (`✅ Production... [36s]`, aliased a `chapultepec-bot-v2.vercel.app`). Las 3 tarjetas nuevas y el fix de reenganche duplicado ya están en producción real — los turnos del 9, 10 y 11-oct para `foto-perfil-empresario`, `foto-perfil-profesionista` y `foto-perfil-banca` ya deberían publicarse solos sin necesitar otro deploy.
