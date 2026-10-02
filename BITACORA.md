@@ -402,3 +402,21 @@ No se tocó código en esta sesión — todo administrativo.
 **Decisión explícita de Carlos, a preservar:** no borrar nunca los números de `llamadas_rescatadas` ni de `leads` aunque estén "No Interesado" o "No Contactar" — los quiere conservados para poder contactarlos en el futuro con promociones de productos nuevos. La limpieza de esta sesión fue solo de etiquetas, ningún registro ni teléfono se eliminó.
 
 **✅ Deploy del fix confirmado el mismo día (2-oct-2026):** Carlos corrió `vercel --prod` en vivo, éxito (`✅ Production... [32s]`, aliased a `chapultepec-bot-v2.vercel.app`). El fix de agrupar por lead_id ya está en producción — una próxima visita a `/api/reenganche-viejos` ya no debería repetir el bug de plantillas duplicadas.
+
+## 17. HALLAZGO REAL — "Información del negocio" de Meta llevaba meses mal, corregido en vivo (2-oct-2026)
+
+**Se revisó en vivo, por primera vez, la pantalla "Información del negocio" del portafolio correcto (`business_id 358500678256951`, Configuración → ícono de maletín "Resumen" → sección "Información del negocio").** Nadie la había mirado desde que se corrigió el nombre el 25-ago — y resultó que varios campos estaban mal o vacíos, visibles para cualquiera que los buscara:
+
+- **Nombre legal del negocio: "Parque Chapulteepc"** — el mismo typo que la Fase 6 dice haber corregido el 25-ago-2026 a "Carlos Alberto Morales De La Vega". **O nunca se guardó el cambio o se revirtió** — no se pudo determinar cuál, pero el campo llevaba el error otra vez (o seguía así siempre) al momento de esta auditoría, coincidiendo con el segundo rechazo del 25-sep.
+- **Dirección: solo "México"** — sin calle, ciudad ni código postal.
+- **Teléfono del negocio: vacío ("Sin teléfono").**
+
+**Corregido en vivo con documentos reales de Carlos** (CURP, Constancia de Situación Fiscal del SAT, recibo CFE — compartidos directo en el chat para este propósito):
+- Nombre legal: **Carlos Alberto Morales De La Vega** (coincide exacto con CURP `MOVC740801HMSRGR08` y RFC `MOVC740801DG0`).
+- Dirección: **Pse de las Rosas 35, Col. Tabachines, Cuernavaca, Morelos, C.P. 62498** — se usó el domicilio fiscal del SAT (no el del recibo CFE, que es otro domicilio distinto: Baja de Chapultepec 108 B, C.P. 62450 — anotado aquí por si una sesión futura necesita el dato).
+- Teléfono del negocio: **+52 777 175 8412** (el número de WhatsApp que se verifica — el 777 492 1176 es el personal de Carlos, usado aparte para alertas del CRM, no se tocó).
+- Identificación fiscal (EIN): **MOVC740801DG0** — campo opcional nuevo que Meta agregó, no existía en intentos anteriores, "se usará para encontrar posibles registros comerciales coincidentes". Se llenó por primera vez.
+
+**Confirmado guardado exitosamente** (captura de pantalla de "Información del negocio" mostrando los 5 campos ya corregidos). **Pendiente inmediato:** revisar la sección "Estado de la verificación del negocio" (quedó cortada al fondo de la pantalla, no visible todavía) — ahí puede estar el botón de "Solicitar revisión"/apelación que se ha buscado sin éxito en sesiones anteriores. Si aparece, usarlo con una explicación escrita señalando que el nombre legal y domicilio ya fueron corregidos. **No volver a reenviar el formulario completo de verificación sin usar esa opción de apelación primero — instrucción explícita de Meta de la Fase 8, sigue vigente.**
+
+**Dato técnico para no repetir la misma pérdida de tiempo:** navegar a esta pantalla fue muy difícil por interfaz — Meta Business Suite nueva ("latest") muestra solo íconos sin texto en la columna de Configuración, y pegar URLs directas con `business_id` causa redirecciones erráticas (`nav_ref=typo_redirect`) si no se navega primero por clic dentro de la sesión activa. Lo que SÍ funcionó: desde dentro del negocio correcto ya cargado, editar manualmente la URL en la barra de direcciones cambiando el segmento `/settings/pages/` por `/settings/business_info/` (ruta clásica). El ícono correcto en la columna de Configuración es el **maletín (🧳), primero de la lista — NO confundir con el círculo "①" más abajo, que es "Meta One" (producto de suscripción pagada, no tiene nada que ver con verificación de negocio).
